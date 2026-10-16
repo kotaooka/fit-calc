@@ -21,7 +21,7 @@
   // ---- 状態 ----
   const FIT_EX = { D: '25', hl: 'H', hg: '7', sl: 'g', sg: '6', th0: '0', th1: '0', ts0: '10', ts1: '20', creq: '0' };
   const THR_EX = { sel: '8|1.25', d: '', P: '', ic: '6H', ec: '6g', ti0: '0', ti1: '0', te0: '5', te1: '8', creq: '0' };
-  const DEF = { mode: 'fit', fit: { ...FIT_EX, sweep: 's', list: 'hole' }, thr: { ...THR_EX, sweep: 'e', zone: 'pitch' } };
+  const DEF = { mode: 'fit', fit: { ...FIT_EX, sweep: 's', list: 'hole' }, thr: { ...THR_EX, sweep: 'e', zone: 'shape' } };
   let st = store.get(KEY);
   if (!st || !st.fit || !st.thr) st = JSON.parse(JSON.stringify(DEF));
   st.fit = { ...DEF.fit, ...st.fit }; st.thr = { ...DEF.thr, ...st.thr };
@@ -370,7 +370,7 @@
       ['有効径の最大すきま' + (coated ? '（塗装後）' : ''), sU(r.coated.cmax), 'µm', ''],
       [r.coat.i[1] > 0 && r.coat.e[1] === 0 ? 'めねじに塗れる膜厚' : 'おねじに塗れる膜厚', fU(Math.max(0, allowE)), 'µm', allowE < 0 ? 'ng' : '']
     ].map(([a, v, u, c]) => `<div class="${c}"><span>${esc(a)}</span><b>${esc(v)}</b> <small>${u}</small></div>`).join('');
-    drawThrZone(r, creq);
+    drawThrFigure(r, creq);
     drawSweep($('tSweepFig'), {
       k: 4, cmin0: r.bare.cmin, cmax0: r.bare.cmax, creq,
       otherMin: st.thr.sweep === 'e' ? r.coat.i[0] : r.coat.e[0], otherMax: st.thr.sweep === 'e' ? r.coat.i[1] : r.coat.e[1],
@@ -487,6 +487,133 @@
     s += `<text x="${L - 8}" y="${T - 10}" font-size="10" fill="${css('--ng')}" text-anchor="end">✕ 干渉あり</text>`;
     el.innerHTML = s + '</svg>';
     el.querySelectorAll('.pick').forEach(g => g.addEventListener('click', () => { st.thr.ec = g.dataset.c; fillInputs(); save(); render(); }));
+  }
+
+  // ねじとナットの断面（軸を含む断面）。左は実寸の比率、右の円は 1 つのフランクを拡大した図
+  // 最も組みにくい状態（めねじの有効径が最小・おねじの有効径が最大・膜厚が最大）で描く
+  // 座標は mm。x は軸方向、y は半径方向（有効径の基準の位置を 0、外向きを正）
+  function drawThrShape(r, creq) {
+    const el = $('tZone');
+    const narrow = el.clientWidth && el.clientWidth < 480;
+    const W = narrow ? 400 : 600, Hh = narrow ? 270 : 290;
+    const P = r.P, H = r.H, tn = Math.tan(Math.PI / 6);
+    const te = r.coat.e[1] / 1000, ti = r.coat.i[1] / 1000;          // 膜厚 [mm]
+    const se = r.ext.es / 2000, si = r.int.EI / 2000;                // 半径方向のずれ [mm]
+    const seL = (r.ext.es - r.ext.Td2) / 2000, siL = (r.int.EI + r.int.TD2) / 2000; // 最小実体
+    const yBc = 3 * H / 8, yBr = -H / 3, yNc = -H / 4, yNr = 3 * H / 8; // 山の頂と谷（基準）
+    const wBr = P / 4 + (H / 3) * tn;                                  // おねじの谷での山の半幅
+    const k0 = -3, k1 = 5;
+    const boltPath = sh => {
+      let d = `M${k0 * P - P / 2} ${-1.2 * H}`;
+      for (let k = k0; k <= k1; k++) {
+        d += ` L${k * P - wBr} ${yBr + sh} L${k * P - P / 16} ${yBc + sh} L${k * P + P / 16} ${yBc + sh} L${k * P + wBr} ${yBr + sh}`;
+      }
+      return d + ` L${k1 * P + P / 2} ${-1.2 * H} Z`;
+    };
+    const nutPath = sh => {
+      let d = `M${k0 * P} ${1.4 * H}`;
+      for (let k = k0; k <= k1; k++) {
+        const c = k * P + P / 2;
+        d += ` L${c - 7 * P / 16} ${yNr + sh} L${c - P / 8} ${yNc + sh} L${c + P / 8} ${yNc + sh} L${c + 7 * P / 16} ${yNr + sh}`;
+      }
+      return d + ` L${(k1 + 1) * P} ${1.4 * H} Z`;
+    };
+    const bP = boltPath(se), nP = nutPath(si), bL = boltPath(seL), nL = nutPath(siL);
+    const c1 = css('--s1'), c2 = css('--s2'), c3 = css('--s3'), ng = css('--ng'), sf = css('--surface'), ink = css('--ink'), ink2 = css('--ink2'), mut = css('--muted'), nf = NUMF();
+    const nsk = 'vector-effect="non-scaling-stroke"';
+    const halo = `paint-order="stroke" stroke="${sf}" stroke-width="3.5" stroke-linejoin="round"`;
+    // 部品と膜厚と重なりを描く（mm 座標）。hatch：断面のハッチングを付けるか
+    const layers = hatch => {
+      let s = '';
+      // 膜厚：輪郭に幅 2t の線を引き、内側の半分を本体の塗りで隠す
+      if (ti > 0) s += `<path d="${nP}" fill="none" stroke="${c3}" stroke-opacity=".75" stroke-width="${2 * ti}" stroke-linejoin="miter"/>`;
+      if (te > 0) s += `<path d="${bP}" fill="none" stroke="${c3}" stroke-opacity=".75" stroke-width="${2 * te}" stroke-linejoin="miter"/>`;
+      s += `<path d="${nP}" fill="${sf}"/><path d="${nP}" fill="${hatch ? 'url(#fcHatchN)' : c1}" fill-opacity="${hatch ? 1 : .22}" stroke="${c1}" stroke-width="1.6" ${nsk}/>`;
+      s += `<path d="${bP}" fill="${sf}"/><path d="${bP}" fill="${hatch ? 'url(#fcHatchB)' : c2}" fill-opacity="${hatch ? 1 : .22}" stroke="${c2}" stroke-width="1.6" ${nsk}/>`;
+      // 重なり（干渉）：おねじ（膜厚込み）の形で切り抜いたナット（膜厚込み）を赤で塗る
+      s += `<path d="${nP}" fill="${ng}" stroke="${ng}" stroke-width="${2 * ti}" fill-opacity=".9" stroke-opacity=".9" mask="url(#fcMaskB)"/>`;
+      // 最小実体の輪郭（有効径が公差の反対側の端のとき）
+      s += `<path d="${nL}" fill="none" stroke="${c1}" stroke-width="1" stroke-dasharray="4 3" ${nsk}/><path d="${bL}" fill="none" stroke="${c2}" stroke-width="1" stroke-dasharray="4 3" ${nsk}/>`;
+      // 有効径の基準の位置
+      s += `<line x1="${k0 * P}" x2="${k1 * P}" y1="0" y2="0" stroke="${ink2}" stroke-width="1" stroke-dasharray="7 3 1.5 3" ${nsk}/>`;
+      return s;
+    };
+
+    // ---- 配置 ----
+    const sx0 = 8, sx1 = narrow ? 250 : 380, sy0 = 26, sy1 = Hh - 26;   // 断面図の枠（px）
+    const xa = -0.55 * P, xb = 1.75 * P, ya = -0.62 * H, yb = 0.78 * H; // 見せる範囲（mm）
+    const sc = Math.min((sx1 - sx0) / (xb - xa), (sy1 - sy0) / (yb - ya));
+    const ox = sx0 + ((sx1 - sx0) - (xb - xa) * sc) / 2 - xa * sc, oy = sy0 + ((sy1 - sy0) - (yb - ya) * sc) / 2 + yb * sc;
+    const T = `translate(${ox} ${oy}) scale(${sc} ${-sc})`;
+    const toPx = (x, y) => [ox + x * sc, oy - y * sc];
+
+    // 拡大の中心：おねじの山 0 の右のフランクが有効径の基準を横切る点
+    const fx = P / 4, fy = 0;
+    // 拡大の半径（mm）：フランクのずれと膜厚がちょうど収まる大きさ
+    const feat = Math.max(Math.abs(r.ext.es) / 4 + r.coat.e[1], r.int.EI / 4 + r.coat.i[1], Math.abs(r.coated.cmin) / 4, 4) / 1000;
+    const Rz = feat * 3.2;
+    const zr = narrow ? 66 : 92, zcx = narrow ? W - zr - 10 : W - zr - 28, zcy = Hh / 2 - 6;
+    const zs = zr / Rz, mag = zs / sc;
+    const TZ = `translate(${zcx - fx * zs} ${zcy + fy * zs}) scale(${zs} ${-zs})`;
+
+    let s = svgOpen(W, Hh, 'ねじとナットの断面の図') + arrowDef();
+    // 定義：ハッチング、切り抜き、重なりのマスク（すべて mm 座標）
+    const hs = P / 14;
+    s += `<defs>
+      <pattern id="fcHatchN" patternUnits="userSpaceOnUse" width="${hs}" height="${hs}" patternTransform="rotate(45)"><rect width="${hs}" height="${hs}" fill="${c1}" fill-opacity=".14"/><line x1="0" y1="0" x2="0" y2="${hs}" stroke="${c1}" stroke-opacity=".55" stroke-width="${hs * 0.12}"/></pattern>
+      <pattern id="fcHatchB" patternUnits="userSpaceOnUse" width="${hs}" height="${hs}" patternTransform="rotate(-45)"><rect width="${hs}" height="${hs}" fill="${c2}" fill-opacity=".14"/><line x1="0" y1="0" x2="0" y2="${hs}" stroke="${c2}" stroke-opacity=".55" stroke-width="${hs * 0.12}"/></pattern>
+      <mask id="fcMaskB" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="${k0 * P - P}" y="${-2 * H}" width="${(k1 - k0 + 2) * P}" height="${4 * H}"><path d="${bP}" fill="#fff" stroke="#fff" stroke-width="${2 * te}" stroke-linejoin="miter"/></mask>
+      <clipPath id="fcClipS" clipPathUnits="userSpaceOnUse"><rect x="${xa}" y="${ya}" width="${xb - xa}" height="${yb - ya}"/></clipPath>
+      <clipPath id="fcClipZ" clipPathUnits="userSpaceOnUse"><circle cx="${fx}" cy="${fy}" r="${Rz}"/></clipPath>
+    </defs>`;
+    // 断面図
+    const [bx0, by0] = toPx(xa, yb), [bx1, by1] = toPx(xb, ya);
+    s += `<rect x="${bx0}" y="${by0}" width="${bx1 - bx0}" height="${by1 - by0}" fill="${sf}" stroke="${css('--line')}"/>`;
+    s += `<g transform="${T}"><g clip-path="url(#fcClipS)">${layers(true)}</g></g>`;
+    s += `<text x="${bx0 + 8}" y="${by0 + 18}" font-size="12.5" font-weight="700" fill="${ink}" ${halo}>ナット（めねじ ${esc(r.int.name)}）</text>`;
+    s += `<text x="${bx0 + 8}" y="${by1 - 10}" font-size="12.5" font-weight="700" fill="${ink}" ${halo}>ボルト（おねじ ${esc(r.ext.name)}）</text>`;
+    const [lx, ly] = toPx(xa, 0);
+    s += `<text x="${lx + 6}" y="${ly - 5}" font-size="10.5" fill="${ink2}" ${halo}>有効径（基準）</text>`;
+    s += `<text x="${bx0}" y="${by0 - 8}" font-size="10.5" fill="${mut}">軸を含む断面（P ${esc(fmt(P, P % 1 ? 2 : 0))} mm、実寸の比率）</text>`;
+    // 拡大の目印と引出線
+    const [px, py] = toPx(fx, fy), pr = Math.max(7, Rz * sc);
+    const ang = Math.atan2(zcy - py, zcx - px);
+    s += `<circle cx="${px}" cy="${py}" r="${pr}" fill="none" stroke="${ink}" stroke-width="1.4"/>`;
+    s += `<line x1="${px + pr * Math.cos(ang)}" y1="${py + pr * Math.sin(ang)}" x2="${zcx - zr * Math.cos(ang)}" y2="${zcy - zr * Math.sin(ang)}" stroke="${ink}" stroke-width="1" stroke-dasharray="3 3"/>`;
+    // 拡大図
+    s += `<circle cx="${zcx}" cy="${zcy}" r="${zr}" fill="${sf}"/>`;
+    s += `<g transform="${TZ}"><g clip-path="url(#fcClipZ)">${layers(false)}`;
+    // 基準のフランクの線（膜厚・寸法差がないときの位置）
+    const fl = (x0, y0, sgn) => `<line x1="${x0 - sgn * 2 * Rz * tn}" y1="${y0 - 2 * Rz}" x2="${x0 + sgn * 2 * Rz * tn}" y2="${y0 + 2 * Rz}" stroke="${mut}" stroke-width="1" stroke-dasharray="2 3" ${nsk}/>`;
+    s += fl(P / 4, 0, -1) + `</g></g>`;
+    s += `<circle cx="${zcx}" cy="${zcy}" r="${zr}" fill="none" stroke="${ink}" stroke-width="1.6"/>`;
+    // 拡大図の中の名前
+    const zp = (x, y) => [zcx + (x - fx) * zs, zcy - (y - fy) * zs];
+    const [nx, ny] = zp(fx + 0.5 * Rz, fy + 0.42 * Rz), [bx2, by2] = zp(fx - 0.5 * Rz, fy - 0.12 * Rz);
+    s += `<text x="${nx}" y="${ny}" font-size="11.5" font-weight="700" fill="${ink}" text-anchor="middle" ${halo}>ナット</text><text x="${bx2}" y="${by2}" font-size="11.5" font-weight="700" fill="${ink}" text-anchor="middle" ${halo}>ボルト</text>`;
+    // 目盛（µm）
+    const barUm = [1, 2, 5, 10, 20, 50, 100].find(v => v / 1000 * zs >= zr * 0.35) || 100;
+    const bw = barUm / 1000 * zs, bx = zcx - bw / 2, by = zcy + zr - 16;
+    s += `<line x1="${bx}" x2="${bx + bw}" y1="${by}" y2="${by}" stroke="${ink}" stroke-width="2"/><line x1="${bx}" x2="${bx}" y1="${by - 4}" y2="${by + 4}" stroke="${ink}"/><line x1="${bx + bw}" x2="${bx + bw}" y1="${by - 4}" y2="${by + 4}" stroke="${ink}"/>`;
+    s += `<text x="${zcx}" y="${by - 6}" font-size="10.5" fill="${ink}" text-anchor="middle" font-family="${nf}" ${halo}>${barUm} µm</text>`;
+    s += `<text x="${zcx}" y="${zcy - zr - 8}" font-size="11" fill="${ink2}" text-anchor="middle">フランクを拡大（×${esc(fmt(mag, 0))}）</text>`;
+    // フランクのすきま（法線方向）= 有効径のすきま ÷ 4
+    const g = r.coated.cmin / 4, bad = r.coated.cmin < creq;
+    s += `<text x="${zcx}" y="${zcy + zr + 18}" font-size="12" font-weight="700" fill="${bad ? ng : ink}" text-anchor="middle">${esc(g < 0 ? `✕ フランクが ${fU(-g)} µm 重なる` : `フランクのすきま ${fU(g)} µm`)}</text>`;
+    el.innerHTML = s + '</svg>';
+  }
+
+  // ねじの図の切り替え
+  function drawThrFigure(r, creq) {
+    const shape = st.thr.zone === 'shape' || !st.thr.zone;
+    $('tFigTitle').textContent = shape ? 'ねじとナットの断面' : '公差域の図';
+    $('tLegend').innerHTML = shape
+      ? `<span style="--c:var(--s1)">ナット（めねじ）</span><span style="--c:var(--s2)">ボルト（おねじ）</span><span style="--c:var(--s3)">膜厚</span><span style="--c:var(--ng)">重なり（干渉）</span><span class="dash" style="--c:var(--muted)">有効径が反対の端のとき</span>`
+      : `<span style="--c:var(--s1)">めねじ（塗装後）</span><span style="--c:var(--s2)">おねじ（塗装後）</span><span class="dash" style="--c:var(--muted)">塗装前</span>`;
+    $('tFigHint').textContent = shape
+      ? '最も組みにくい状態（めねじの有効径が最小、おねじの有効径が最大、膜厚が最大）で描いています。破線は有効径が公差の反対の端（最もゆるい側）のときです。フランクのすきまは有効径のすきまの 1/4 で、ここに両方の膜厚が入ります。'
+      : 'それぞれの径の基準寸法からの寸法許容差 [µm] です。ねじのはめあいを決めるのは有効径です。外径・内径も出すと、めねじの谷の径の最大と、おねじの谷の径の最小は規格で定めていないので、上下に開いた形で描きます。';
+    if (shape) drawThrShape(r, creq); else drawThrZone(r, creq);
   }
 
   // 計算のしかたの図：フランク面の膜厚 t で、山が半径方向に 2t 太り、有効径が 4t 変わる

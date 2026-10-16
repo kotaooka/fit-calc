@@ -67,7 +67,7 @@ with sync_playwright() as p:
     o.screenshot(path=str(ROOT / 'og.png'))
     # ねじ
     pg.click('#mode button[data-v="thr"]'); pg.wait_for_timeout(300)
-    pg.evaluate("window.scrollTo(0, 0)"); pg.wait_for_timeout(200)
+    scroll_to(pg, '#thrPanel')
     pg.screenshot(path=str(OUT / 'thread.png'), full_page=False)
     m = open_page(b, viewport={'width': 390, 'height': 844}, device_scale_factor=2, is_mobile=True, has_touch=True, color_scheme='dark')
     scroll_to(m, '#fZone')

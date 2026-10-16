@@ -253,13 +253,13 @@ footer a { color: inherit; }
     <div class="col">
       <div class="box">
         <div class="row" style="justify-content:space-between">
-          <h2>公差域の図</h2>
-          <div class="seg" id="tZoneSel" role="group" aria-label="図に出す径"><button type="button" data-v="pitch" aria-pressed="true">有効径</button><button type="button" data-v="all" aria-pressed="false">外径・有効径・内径</button></div>
+          <h2 id="tFigTitle">ねじとナットの断面</h2>
+          <div class="seg" id="tZoneSel" role="group" aria-label="図の種類"><button type="button" data-v="shape" aria-pressed="true">ねじ山</button><button type="button" data-v="pitch" aria-pressed="false">有効径の公差域</button><button type="button" data-v="all" aria-pressed="false">3 つの径</button></div>
         </div>
         <div class="kpi" id="tKpi"></div>
         <div class="figure" id="tZone"></div>
-        <div class="legend"><span style="--c:var(--s1)">めねじ（塗装後）</span><span style="--c:var(--s2)">おねじ（塗装後）</span><span class="dash" style="--c:var(--muted)">塗装前</span></div>
-        <p class="hint">それぞれの径の基準寸法からの寸法許容差 [µm] です。ねじのはめあいを決めるのは有効径です。外径・内径も出すと、めねじの谷の径の最大と、おねじの谷の径の最小は規格で定めていないので、上下に開いた形で描きます。</p>
+        <div class="legend" id="tLegend"></div>
+        <p class="hint" id="tFigHint"></p>
         <div class="msgs" id="tMsgs"></div>
       </div>
       <div class="box">
