@@ -217,8 +217,60 @@
     ...FINE.map(([d, P]) => ({ d, P, coarse: false, name: `M${d}×${P}` }))
   ];
 
-  const EXT_CLASSES = ['3h4h', '4h', '5g6g', '5h6h', '6e', '6f', '6g', '6h', '7e6e', '7g6g', '7h6h', '8e', '8g', '9g8g'];
+  const EXT_CLASSES = ['3h4h', '4g', '4h', '5g4g', '5g6g', '5h4h', '5h6h', '6e', '6f', '6g', '6h', '7e6e', '7g6g', '7h6h', '8e', '8g', '9e8e', '9g8g'];
   const INT_CLASSES = ['4H', '5H', '6H', '7H', '8H', '5G', '6G', '7G', '8G'];
+
+  // JIS B 0209-1（ISO 965-1）の推奨公差域クラス。精度の区分 × はめあい長さ（S / N / L の順）
+  // null は推奨表にないもの。括弧付き（第 2・第 3 選択）も含めて持つ
+  const THREAD_REC = {
+    int: {
+      fine: { G: [null, null, null], H: ['4H', '5H', '6H'] },
+      medium: { G: ['5G', '6G', '7G'], H: ['5H', '6H', '7H'] },
+      coarse: { G: [null, '7G', '8G'], H: [null, '7H', '8H'] }
+    },
+    ext: {
+      fine: { e: [null, null, null], f: [null, null, null], g: [null, '4g', '5g4g'], h: ['3h4h', '4h', '5h4h'] },
+      medium: { e: [null, '6e', '7e6e'], f: [null, '6f', null], g: ['5g6g', '6g', '7g6g'], h: ['5h6h', '6h', '7h6h'] },
+      coarse: { e: [null, '8e', '9e8e'], f: [null, null, null], g: [null, '8g', '9g8g'], h: [null, null, null] }
+    }
+  };
+  const QUALITY_JA = { fine: '精', medium: '中', coarse: '粗' };
+  const LENGTHS = ['S', 'N', 'L'];
+  const LENGTH_JA = { S: '短い（S）', N: '並（N）', L: '長い（L）' };
+  // 位置の組み合わせ。めねじの位置 + おねじの位置
+  const THREAD_POS = [
+    { v: 'Hg', ip: 'H', ep: 'g', ja: 'H/g（一般用）' },
+    { v: 'Hh', ip: 'H', ep: 'h', ja: 'H/h（すきまなし）' },
+    { v: 'Gh', ip: 'G', ep: 'h', ja: 'G/h（めねじ側にすきま）' },
+    { v: 'Hf', ip: 'H', ep: 'f', ja: 'H/f（膜厚を見込む）' },
+    { v: 'He', ip: 'H', ep: 'e', ja: 'H/e（厚い膜厚を見込む）' }
+  ];
+
+  // 精度の区分・はめあい長さ・位置から標準の公差域クラスを選ぶ。d・P を渡すとそのねじで定められているかも確かめる
+  function standardThreadClass({ quality, length = 'N', pos = 'Hg', d, P }) {
+    const q = THREAD_REC.int[quality], li = LENGTHS.indexOf(length), tp = THREAD_POS.find(x => x.v === pos);
+    if (!q || li < 0 || !tp) return { error: '精度の区分・はめあい長さ・位置の指定が正しくありません。' };
+    const ic = q[tp.ip][li], ec = THREAD_REC.ext[quality][tp.ep][li];
+    const lab = `${QUALITY_JA[quality]}・${LENGTH_JA[length]}`;
+    if (!ic || !ec) {
+      const miss = [!ic && `めねじの ${tp.ip}`, !ec && `おねじの ${tp.ep}`].filter(Boolean).join('・');
+      return { error: `${lab}では${miss} は推奨されていません（JIS B 0209-1 の推奨公差域クラス）。`, int: ic, ext: ec };
+    }
+    if (d != null && P != null) {
+      const z = threadZones({ d, P, int: parseThreadClass(ic, false), ext: parseThreadClass(ec, true) });
+      if (z.error) return { error: `${lab}の ${ic}/${ec} は、このねじでは使えません。${z.error}`, int: ic, ext: ec };
+    }
+    return { int: ic, ext: ec, label: lab };
+  }
+  // 公差域クラスの組み合わせが推奨表のどれにあたるか（はめあい長さは N を優先して探す）
+  function findStandardThread(ic, ec) {
+    const out = [];
+    for (const quality of ['medium', 'fine', 'coarse']) for (const length of ['N', 'S', 'L']) for (const tp of THREAD_POS) {
+      const r = standardThreadClass({ quality, length, pos: tp.v });
+      if (!r.error && r.int === ic && r.ext === ec) out.push({ quality, length, pos: tp.v });
+    }
+    return out;
+  }
 
   // 「6g」「5g6g」→ { pos, g2（有効径の等級）, gd（外径の等級） }、「6H」→ { pos, g }
   function parseThreadClass(s, ext) {
@@ -303,7 +355,8 @@
 
   const api = {
     tolZone, fit, parseFitClass, rangeIndex, SHAFT_LETTERS, HOLE_LETTERS, GRADES, IT,
-    threadZones, threadFit, parseThreadClass, coatingRoomByPosition, THREADS, EXT_CLASSES, INT_CLASSES, fitType
+    threadZones, threadFit, parseThreadClass, coatingRoomByPosition, THREADS, EXT_CLASSES, INT_CLASSES, fitType,
+    standardThreadClass, findStandardThread, THREAD_REC, THREAD_POS, QUALITY_JA, LENGTH_JA, LENGTHS
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.FitCalc = api;

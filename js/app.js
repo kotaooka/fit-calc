@@ -20,7 +20,7 @@
 
   // ---- 状態 ----
   const FIT_EX = { D: '25', hl: 'H', hg: '7', sl: 'g', sg: '6', th0: '0', th1: '0', ts0: '10', ts1: '20', creq: '0' };
-  const THR_EX = { sel: '8|1.25', d: '', P: '', ic: '6H', ec: '6g', ti0: '0', ti1: '0', te0: '5', te1: '8', creq: '0' };
+  const THR_EX = { sel: '8|1.25', d: '', P: '', q: 'medium', len: 'N', fp: 'Hg', ic: '6H', ec: '6g', ti0: '0', ti1: '0', te0: '5', te1: '8', creq: '0' };
   const DEF = { mode: 'fit', fit: { ...FIT_EX, sweep: 's', list: 'hole' }, thr: { ...THR_EX, sweep: 'e', zone: 'shape' } };
   let st = store.get(KEY);
   if (!st || !st.fit || !st.thr) st = JSON.parse(JSON.stringify(DEF));
@@ -48,17 +48,60 @@
     `<optgroup label="その他">${opt('custom', '呼び径とピッチを入れる')}</optgroup>`;
   $('tIc').innerHTML = FC.INT_CLASSES.map(c => opt(c, c)).join('');
   $('tEc').innerHTML = FC.EXT_CLASSES.map(c => opt(c, c)).join('');
+  $('tQ').innerHTML = opt('', '個別に選ぶ') + Object.entries(FC.QUALITY_JA).map(([v, t]) => opt(v, t + (v === 'medium' ? '（一般用）' : v === 'fine' ? '（精密）' : '（粗い）'))).join('');
+  $('tL').innerHTML = FC.LENGTHS.map(v => opt(v, FC.LENGTH_JA[v])).join('');
+  $('tFp').innerHTML = FC.THREAD_POS.map(x => opt(x.v, x.ja)).join('');
 
   // ---- 入力と状態の対応 ----
   const FIT_IN = { fD: 'D', fHl: 'hl', fHg: 'hg', fSl: 'sl', fSg: 'sg', fTh0: 'th0', fTh1: 'th1', fTs0: 'ts0', fTs1: 'ts1', fCreq: 'creq' };
-  const THR_IN = { tSel: 'sel', tD: 'd', tP: 'P', tIc: 'ic', tEc: 'ec', tTi0: 'ti0', tTi1: 'ti1', tTe0: 'te0', tTe1: 'te1', tCreq: 'creq' };
+  const THR_IN = { tSel: 'sel', tD: 'd', tP: 'P', tQ: 'q', tL: 'len', tFp: 'fp', tIc: 'ic', tEc: 'ec', tTi0: 'ti0', tTi1: 'ti1', tTe0: 'te0', tTe1: 'te1', tCreq: 'creq' };
   function fillInputs() {
     Object.entries(FIT_IN).forEach(([id, k]) => { $(id).value = st.fit[k] ?? ''; });
     Object.entries(THR_IN).forEach(([id, k]) => { $(id).value = st.thr[k] ?? ''; });
     $('fPreset').value = PRESETS.some(p => p[0] === `${st.fit.hl}${st.fit.hg}/${st.fit.sl}${st.fit.sg}`) ? `${st.fit.hl}${st.fit.hg}/${st.fit.sl}${st.fit.sg}` : '';
   }
   Object.entries(FIT_IN).forEach(([id, k]) => $(id).addEventListener($(id).tagName === 'SELECT' ? 'change' : 'input', () => { st.fit[k] = $(id).value; save(); render(); }));
-  Object.entries(THR_IN).forEach(([id, k]) => $(id).addEventListener($(id).tagName === 'SELECT' ? 'change' : 'input', () => { st.thr[k] = $(id).value; save(); render(); }));
+  Object.entries(THR_IN).forEach(([id, k]) => $(id).addEventListener($(id).tagName === 'SELECT' ? 'change' : 'input', () => {
+    st.thr[k] = $(id).value;
+    if (k === 'q' || k === 'len' || k === 'fp') { if (k !== 'q' && !st.thr.q) st.thr.q = 'medium'; applyStd(); }
+    else if (k === 'ic' || k === 'ec') syncStd();
+    fillInputs(); save(); render();
+  }));
+  // 標準の組み合わせ：精度の区分・はめあい長さ・位置から、めねじとおねじの公差域クラスを決める
+  // 推奨表にある組み合わせか（ねじの寸法は問わない）
+  const stdOk = (q, len, fp) => !FC.standardThreadClass({ quality: q, length: len, pos: fp }).error;
+  function applyStd() {
+    const t = st.thr; if (!t.q) return;
+    // 推奨表にない長さ・位置になったら、使えるものに寄せる（長さは N を、位置は表の順を優先）
+    if (!FC.THREAD_POS.some(x => stdOk(t.q, t.len, x.v))) t.len = ['N', 'L', 'S'].find(l => FC.THREAD_POS.some(x => stdOk(t.q, l, x.v)));
+    if (!stdOk(t.q, t.len, t.fp)) t.fp = FC.THREAD_POS.find(x => stdOk(t.q, t.len, x.v)).v;
+    const r = FC.standardThreadClass({ quality: t.q, length: t.len, pos: t.fp });
+    t.ic = r.int; t.ec = r.ext;
+  }
+  // 推奨表にない長さ・位置は選べないようにする
+  function stdOptions() {
+    const t = st.thr;
+    [...$('tL').options].forEach(o => { o.disabled = !!t.q && !FC.THREAD_POS.some(x => stdOk(t.q, o.value, x.v)); });
+    [...$('tFp').options].forEach(o => { o.disabled = !!t.q && !stdOk(t.q, t.len, o.value); });
+  }
+  // めねじ・おねじを直接選んだときは、推奨表の組み合わせにあたればその区分を表示し、なければ「個別に選ぶ」にする
+  function syncStd() {
+    const t = st.thr, m = FC.findStandardThread(t.ic, t.ec);
+    if (t.q) { const r = FC.standardThreadClass({ quality: t.q, length: t.len, pos: t.fp }); if (!r.error && r.int === t.ic && r.ext === t.ec) return; }
+    if (m.length) Object.assign(t, { q: m[0].quality, len: m[0].length, fp: m[0].pos }); else t.q = '';
+  }
+  syncStd();
+  // 選んだ標準の組み合わせの説明（推奨表にない・このねじで定められていない場合はその理由）
+  function stdNote(d, P) {
+    const t = st.thr, el = $('tStd');
+    stdOptions();
+    if (!t.q) { el.textContent = `個別に選んでいます（${t.ic}/${t.ec}）。推奨公差域クラスの組み合わせではありません。`; el.classList.remove('ng'); return; }
+    const r = FC.standardThreadClass({ quality: t.q, length: t.len, pos: t.fp, d, P });
+    el.classList.toggle('ng', !!r.error);
+    if (r.error) { el.textContent = '× ' + r.error; return; }
+    const first = t.q === 'medium' && t.len === 'N' && t.fp === 'Hg';
+    el.textContent = `→ ${r.int}/${r.ext}${first ? '（一般のボルト・ナットで最も使う組み合わせ）' : ''}`;
+  }
   $('fPreset').addEventListener('change', () => {
     const v = $('fPreset').value; if (!v) return;
     const [h, s] = v.split('/'), ph = FC.parseFitClass(h), ps = FC.parseFitClass(s);
@@ -356,6 +399,7 @@
     const coat = { i: readRange('tTi0', 'tTi1', t.ti0, t.ti1, bad), e: readRange('tTe0', 'tTe1', t.te0, t.te1, bad) };
     let creq = String(t.creq).trim() === '' ? 0 : num(t.creq); if (!Number.isFinite(creq)) { bad.add('tCreq'); creq = 0; }
     markBad(Object.keys(THR_IN), bad);
+    stdNote(bad.has('tD') || bad.has('tP') ? null : d, bad.has('tD') || bad.has('tP') ? null : P);
     const ic = FC.parseThreadClass(t.ic, false), ec = FC.parseThreadClass(t.ec, true);
     tCopy.length = 0;
     thrRes = bad.has('tD') || bad.has('tP') ? { error: '呼び径とピッチを mm で入れてください。' } : bad.size ? { error: '赤い欄の値を見直してください。膜厚は 0 以上で、最小 ≤ 最大にします。' } : FC.threadFit({ d, P, int: ic, ext: ec, coat, creq });
@@ -490,7 +534,7 @@
     });
     s += `<text x="${L - 8}" y="${T - 10}" font-size="10" fill="${css('--ng')}" text-anchor="end">✕ 干渉あり</text>`;
     el.innerHTML = s + '</svg>';
-    el.querySelectorAll('.pick').forEach(g => g.addEventListener('click', () => { st.thr.ec = g.dataset.c; fillInputs(); save(); render(); }));
+    el.querySelectorAll('.pick').forEach(g => g.addEventListener('click', () => { st.thr.ec = g.dataset.c; syncStd(); fillInputs(); save(); render(); }));
   }
 
   // ねじとナットの断面（軸を含む断面）。左は実寸の比率、右の円は 1 つのフランクを拡大した図

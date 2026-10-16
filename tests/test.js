@@ -69,5 +69,28 @@ function thr(d, P, ic, ec) { return F.threadFit({ d, P, int: F.parseThreadClass(
   n++; if (!thr(2, 0.4, '6H', '6e').error) { fail++; console.log('✕ P0.4 の e は定められていないはず'); }
 }
 
+// ---- 推奨公差域クラス（JIS B 0209-1 / ISO 965-1） ----
+{
+  const std = (quality, length, pos, d, P) => F.standardThreadClass({ quality, length, pos, d, P });
+  const same = (name, r, want) => { n++; const got = r.error ? 'error' : `${r.int}/${r.ext}`; if (got !== want) { fail++; console.log(`✕ ${name}: ${got} ≠ ${want}`); } };
+  same('中・N・H/g', std('medium', 'N', 'Hg'), '6H/6g'); same('中・N・H/h', std('medium', 'N', 'Hh'), '6H/6h');
+  same('中・N・G/h', std('medium', 'N', 'Gh'), '6G/6h'); same('中・N・H/e', std('medium', 'N', 'He'), '6H/6e'); same('中・N・H/f', std('medium', 'N', 'Hf'), '6H/6f');
+  same('中・S・H/g', std('medium', 'S', 'Hg'), '5H/5g6g'); same('中・L・H/g', std('medium', 'L', 'Hg'), '7H/7g6g');
+  same('精・N・H/h', std('fine', 'N', 'Hh'), '5H/4h'); same('精・S・H/h', std('fine', 'S', 'Hh'), '4H/3h4h'); same('精・L・H/g', std('fine', 'L', 'Hg'), '6H/5g4g');
+  same('粗・N・H/g', std('coarse', 'N', 'Hg'), '7H/8g'); same('粗・L・H/g', std('coarse', 'L', 'Hg'), '8H/9g8g');
+  same('精・S・H/g は推奨表にない', std('fine', 'S', 'Hg'), 'error'); same('粗・N・H/h は推奨表にない', std('coarse', 'N', 'Hh'), 'error');
+  same('M8 粗・N・H/g は使える', std('coarse', 'N', 'Hg', 8, 1.25), '7H/8g');
+  same('M3 の 8g は定められていない', std('coarse', 'N', 'Hg', 3, 0.5), 'error');
+  // 推奨表の組み合わせはすべて EXT_CLASSES・INT_CLASSES にあり、M10 で計算できる
+  for (const q of ['fine', 'medium', 'coarse']) for (const l of F.LENGTHS) for (const p of F.THREAD_POS) {
+    const r = std(q, l, p.v); if (r.error) continue;
+    n++; if (!F.INT_CLASSES.includes(r.int) || !F.EXT_CLASSES.includes(r.ext)) { fail++; console.log(`✕ ${r.int}/${r.ext} が選択肢にない`); }
+    n++; if (std(q, l, p.v, 10, 1.5).error) { fail++; console.log(`✕ M10 で ${r.int}/${r.ext} が計算できない`); }
+  }
+  n++; if (F.findStandardThread('6H', '6g')[0]?.quality !== 'medium' || F.findStandardThread('6H', '6g')[0]?.length !== 'N') { fail++; console.log('✕ 6H/6g は 中・N'); }
+  n++; if (F.findStandardThread('6H', '8g').length) { fail++; console.log('✕ 6H/8g は推奨表の組み合わせではない'); }
+  eq('M10 9e8e の外径公差', thr(10, 1.5, '8H', '9e8e').ext.Td, 375); eq('M10 4g の有効径公差', thr(10, 1.5, '5H', '4g').ext.Td2, 85);
+}
+
 console.log(fail ? `\n${fail} / ${n} 件が不一致` : `${n} 件すべて一致`);
 process.exit(fail ? 1 : 0);

@@ -96,6 +96,8 @@ nav.tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset
 .fields.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .field.wide { grid-column: 1 / -1; }
+.fields > .hint.wide { grid-column: 1 / -1; margin-top: -4px; }
+.hint.std.ng { color: var(--ng); }
 .field label, .field .lab { font-size: .8rem; color: var(--ink2); }
 .pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; }
 input[type="text"], select { width: 100%; font: 500 .95rem var(--f-num); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; }
@@ -246,10 +248,14 @@ footer a { color: inherit; }
           <div class="field wide"><label for="tSel">ねじ</label><select id="tSel"></select></div>
           <div class="field" id="tDf" hidden><label for="tD">呼び径 [mm]</label><input type="text" id="tD" inputmode="decimal"></div>
           <div class="field" id="tPf" hidden><label for="tP">ピッチ [mm]</label><input type="text" id="tP" inputmode="decimal"></div>
+          <div class="field"><label for="tQ">精度の区分</label><select id="tQ"></select></div>
+          <div class="field"><label for="tL">はめあい長さ</label><select id="tL"></select></div>
+          <div class="field wide"><label for="tFp">位置の組み合わせ</label><select id="tFp"></select></div>
+          <p class="hint wide std" id="tStd" aria-live="polite"></p>
           <div class="field"><label for="tIc">めねじ（ナット）</label><select id="tIc"></select></div>
           <div class="field"><label for="tEc">おねじ（ボルト）</label><select id="tEc"></select></div>
         </div>
-        <p class="hint">JIS B 0209-1（ISO 965-1）の公差です。公差等級は、はめあい長さが「並（N）」のときの選び方を前提にしています。5g6g は有効径 5g・外径 6g の意味です。</p>
+        <p class="hint">JIS B 0209-1（ISO 965-1）の公差です。精度の区分・はめあい長さ・位置を選ぶと、推奨公差域クラスの表からめねじとおねじを自動で選びます。迷ったら「中・並（N）・H/g」（6H/6g）です。めねじ・おねじを直接選ぶと「個別に選ぶ」になります。5g6g は有効径 5g・外径 6g の意味です。</p>
         <p class="privacy">データはこの端末の中だけで計算し、外部に送信しません。入力は自動でこの端末に保存します。</p>
       </div>
       <div class="box">
@@ -376,7 +382,56 @@ footer a { color: inherit; }
 <li>位置：おねじは e・f・g・h、めねじは G・H。h・H は基礎となる寸法許容差が 0 で、e・f・g と G は膜厚などのためのすきまを持たせた位置です</li>
 <li>等級：有効径の公差（めねじ TD2、おねじ Td2）、めねじの内径の公差 TD1、おねじの外径の公差 Td を表から引きます。有効径の公差は呼び径の区分とピッチで、内径・外径の公差はピッチだけで決まります</li>
 <li>5g6g は「有効径 5g・外径 6g」、6g は「有効径・外径とも 6g」の意味です</li>
-<li>等級の選び方は、はめあい長さ（S・N・L）と精度（精・中・粗）で JIS に推奨があります。このツールは入れた公差域クラスの値をそのまま使います</li>
+<li>等級の選び方は、はめあい長さ（S・N・L）と精度（精・中・粗）で JIS に推奨があります。「精度の区分」「はめあい長さ」「位置の組み合わせ」を選ぶと、下の表からめねじとおねじを自動で選びます。めねじ・おねじを直接選ぶこともできます</li>
+</ul>
+<h4>推奨公差域クラス（JIS B 0209-1 / ISO 965-1）</h4>
+<table>
+<thead>
+<tr>
+<th>精度</th>
+<th>めねじ G（S / N / L）</th>
+<th>めねじ H</th>
+<th>おねじ e</th>
+<th>おねじ f</th>
+<th>おねじ g</th>
+<th>おねじ h</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>精</td>
+<td>― / ― / ―</td>
+<td>4H / 5H / 6H</td>
+<td>― / ― / ―</td>
+<td>― / ― / ―</td>
+<td>― / 4g / 5g4g</td>
+<td>3h4h / 4h / 5h4h</td>
+</tr>
+<tr>
+<td>中</td>
+<td>5G / 6G / 7G</td>
+<td>5H / 6H / 7H</td>
+<td>― / 6e / 7e6e</td>
+<td>― / 6f / ―</td>
+<td>5g6g / 6g / 7g6g</td>
+<td>5h6h / 6h / 7h6h</td>
+</tr>
+<tr>
+<td>粗</td>
+<td>― / 7G / 8G</td>
+<td>― / 7H / 8H</td>
+<td>― / 8e / 9e8e</td>
+<td>― / ― / ―</td>
+<td>― / 8g / 9g8g</td>
+<td>― / ― / ―</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>一般のボルト・ナットは「中・並（N）」の 6H/6g です。迷ったらこれを選びます</li>
+<li>めねじとおねじは表のどれとどれを組んでもかまいませんが、十分なかみ合いを確保するため H/g・H/h・G/h の組み合わせが勧められています。e・f は、めっき・塗装の膜厚を見込むときに使います（このツールでは H/e・H/f として選べます）</li>
+<li>表にあっても、ピッチが小さいねじでは定められていない等級があります（8 級の外径公差は P 0.8 mm 以上、e は P 0.5 mm 以上など）。そのときは理由を表示し、計算はしません</li>
+<li>はめあい長さ S・N・L の境目（呼び径とピッチで決まる長さ）は自動では判定しません。ナットの高さが 0.8d 前後の一般的なボルト・ナットは N です</li>
 </ul>
 <h3>はめあいを決めるのは有効径</h3>
 <p>めねじとおねじは、山の斜面（フランク）どうしが当たってかみ合います。外径・内径（山の頂と谷）には有効径より大きなすきまがあるので、組めるかどうかは有効径のすきまで決まります。</p>
