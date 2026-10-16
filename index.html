@@ -78,7 +78,12 @@ header.top { position: sticky; top: 0; z-index: 5; background: var(--bg); border
 .brand .home:hover { color: var(--accent); text-decoration: underline; }
 .brand .crumb { font-size: .78rem; color: var(--muted); margin-right: -6px; }
 .brand .theme { margin-left: auto; }
-.lead { margin: 0; color: var(--ink2); font-size: .88rem; }
+nav.tabs { display: flex; gap: 4px; margin-top: 10px; overflow-x: auto; scrollbar-width: none; }
+nav.tabs::-webkit-scrollbar { display: none; }
+nav.tabs button { flex: 0 0 auto; border: 0; background: none; color: var(--ink2); font: inherit; font-size: .92rem; padding: 8px 12px 10px; cursor: pointer; border-bottom: 3px solid transparent; }
+nav.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); font-weight: 700; }
+nav.tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.privacy { font-size: .8rem; color: var(--ok); margin: 0; }
 .wrap { max-width: 1080px; margin: 0 auto; padding: 16px 16px 40px; display: flex; flex-direction: column; gap: 16px; }
 .panel { display: grid; grid-template-columns: minmax(0, 330px) minmax(0, 1fr); gap: 16px; align-items: start; }
 @media (max-width: 760px) { .panel { grid-template-columns: minmax(0, 1fr); } }
@@ -102,8 +107,6 @@ input.bad, select.bad { border-color: var(--ng); background: var(--ng-weak); }
 button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; flex-wrap: wrap; }
 .seg button { border: 0; background: var(--bg); color: var(--ink2); font: inherit; font-size: .85rem; padding: 6px 12px; cursor: pointer; }
-.seg.tabs { display: grid; grid-template-columns: 1fr 1fr; max-width: 420px; }
-.seg.tabs button { padding: 8px 12px; font-size: .95rem; }
 .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
 .msg { border-radius: 6px; padding: 8px 10px; font-size: .88rem; }
 .msg.err { background: var(--ng-weak); color: var(--ng); }
@@ -141,7 +144,7 @@ table.res tr.cur { background: var(--accent-weak); }
 .legend span::before { content: ""; display: inline-block; width: 12px; height: 10px; margin-right: 5px; vertical-align: -1px; background: var(--c); border-radius: 2px; }
 .legend span.line::before { height: 3px; vertical-align: 3px; }
 .legend span.dash::before { height: 10px; background: transparent; border: 1.5px dashed var(--c); box-sizing: border-box; }
-footer { font-size: .78rem; color: var(--muted); }
+footer { margin-top: 16px; font-size: .78rem; color: var(--muted); }
 footer a { color: inherit; }
 #toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--surface); padding: 8px 14px; border-radius: 999px; font-size: .85rem; }
 .howto svg { max-width: 420px; }
@@ -155,13 +158,14 @@ footer a { color: inherit; }
       <span class="std">JIS B 0401 / JIS B 0209 / 膜厚</span>
       <button class="btn theme" id="themeBtn" type="button" aria-label="表示テーマを切り替え">表示：自動</button>
     </div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="fit" type="button">はめあい</button>
+      <button role="tab" aria-selected="false" data-tab="thr" type="button">ねじ</button>
+    </nav>
   </div>
 </header>
 
 <main class="wrap">
-  <p class="lead">穴と軸、めねじとおねじの公差域を図にして、すきま・しめしろを求めます。塗装やめっきの膜厚を入れると、組んだときに何 µm 干渉するか、膜厚を何 µm まで入れてよいかを出します。</p>
-  <div class="seg tabs" id="mode" role="group" aria-label="計算するもの"><button type="button" data-v="fit" aria-pressed="true">はめあい（穴と軸）</button><button type="button" data-v="thr" aria-pressed="false">ねじ（めねじとおねじ）</button></div>
-
   <!-- ===== はめあい ===== -->
   <section class="panel" id="fitPanel">
     <div class="col">
@@ -174,6 +178,7 @@ footer a { color: inherit; }
           <div class="field wide"><label for="fPreset">よく使うはめあいから選ぶ</label><select id="fPreset" class="ui"></select></div>
         </div>
         <p class="hint">JIS B 0401（ISO 286）の基準寸法 500 mm 以下、公差等級 IT4〜IT12 に対応しています。</p>
+        <p class="privacy">データはこの端末の中だけで計算し、外部に送信しません。入力は自動でこの端末に保存します。</p>
       </div>
       <div class="box">
         <h2>膜厚（片側）</h2>
@@ -233,6 +238,7 @@ footer a { color: inherit; }
           <div class="field"><label for="tEc">おねじ（ボルト）</label><select id="tEc"></select></div>
         </div>
         <p class="hint">JIS B 0209-1（ISO 965-1）の公差です。公差等級は、はめあい長さが「並（N）」のときの選び方を前提にしています。5g6g は有効径 5g・外径 6g の意味です。</p>
+        <p class="privacy">データはこの端末の中だけで計算し、外部に送信しません。入力は自動でこの端末に保存します。</p>
       </div>
       <div class="box">
         <h2>膜厚（フランク面の片側）</h2>
@@ -291,7 +297,9 @@ footer a { color: inherit; }
     <div class="figure" id="howtoFig"></div>
     <p class="hint">膜厚は面に均一に付くとみなしています。電気めっきは山の頂や端に厚く付き、吹付け塗装は谷にたまりやすいので、実際の厚さの分布が分かっているときは、厚いところの値を最大に入れてください。ピッチ誤差・フランク角の誤差による有効径の増え分（ゲージで測る実効有効径）は入れていません。</p>
   </div>
-  <footer>計算は端末の中だけで行い、入力した値はどこにも送信しません。一度開けばオフラインでも使えます。<a href="https://github.com/kotaooka/fit-calc">GitHub</a> ・ MIT License</footer>
+  <footer>
+    <a href="https://github.com/kotaooka/fit-calc">GitHub</a> ・ MIT License
+  </footer>
 </main>
 <div id="toast" hidden></div>
 

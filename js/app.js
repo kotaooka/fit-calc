@@ -73,8 +73,12 @@
     document.querySelectorAll(`#${id} button`).forEach(b => b.addEventListener('click', () => { set(b.dataset.v); save(); render(); }));
     return () => document.querySelectorAll(`#${id} button`).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === get())));
   }
+  // モードのタブ（ヘッダーの nav.tabs。ほかのツールと同じ形）
+  const tabBtns = document.querySelectorAll('nav.tabs button');
+  tabBtns.forEach(b => b.addEventListener('click', () => { st.mode = b.dataset.tab; save(); render(); window.scrollTo(0, 0); }));
+  const tabUpd = () => tabBtns.forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === st.mode)));
   const segUpd = [
-    segs('mode', () => st.mode, v => { st.mode = v; }),
+    tabUpd,
     segs('fSweep', () => st.fit.sweep, v => { st.fit.sweep = v; }),
     segs('fList', () => st.fit.list, v => { st.fit.list = v; }),
     segs('tSweep', () => st.thr.sweep, v => { st.thr.sweep = v; }),
