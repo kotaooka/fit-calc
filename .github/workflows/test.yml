@@ -1,4 +1,4 @@
-# プッシュ時にはめあい・ねじ公差の検算テストを実行する
+# プッシュ時に、解説の埋め込みが最新かと、はめあい・ねじ公差の検算テストを確認する
 name: test
 on: [push, pull_request]
 jobs:
@@ -6,8 +6,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - run: pip install markdown
+      - name: 解説（docs/explanation.md）の埋め込みが最新か
+        run: python tools/build.py && git diff --exit-code index.html
       - name: 検算テスト
         run: node tests/test.js

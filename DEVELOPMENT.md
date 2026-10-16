@@ -5,14 +5,16 @@
 ## ファイル構成
 
 ```
-index.html             画面（スタイルを含む）
+index.html             画面（スタイルを含む）。解説は docs/explanation.md から埋め込む
 js/fit.js              計算（ISO 286 の表と公差域、はめあい、ISO 965-1 の表とねじの寸法・はめあい、膜厚の効き）。Node でも読み込み可
 js/app.js              画面処理（公差域の図、膜厚とすきまのグラフ、組み合わせ一覧、結果の表示、テーマ、入力の保存、Service Worker の登録）
 sw.js                  オフライン用のキャッシュ処理（Service Worker）
 manifest.webmanifest   アプリとして追加するための設定
 og.png                 SNS 共有用の画像（tools/screenshots.py で作る）
 icons/                 アプリアイコン（tools/make_icons.py で作る）
+docs/explanation.md    「解説」タブの原稿
 docs/screenshots/      README 用のスクリーンショット（tools/screenshots.py で撮る）
+tools/build.py         解説を index.html に埋め込む
 tests/test.js          検算テスト
 .github/workflows/     push 時の自動テスト
 ```
@@ -21,6 +23,7 @@ tests/test.js          検算テスト
 
 - `index.html`・`js/`・`icons/` を変更したら、**`sw.js` 先頭の `VERSION` を必ず上げてから** push してください。上げないと、すでに使っている人の端末に古いファイルが残り続けます
 - 画面の見た目を変えたときは、`docs/screenshots/` の画像と `og.png` も撮り直してください（撮影手順は `tools/screenshots.py` の先頭）
+- 解説を直すときは `docs/explanation.md` を編集し、`python tools/build.py`（`pip install markdown`）で index.html に埋め込んでください。埋め込み忘れは CI で検出します
 - GitHub Pages は main ブランチのルートを公開しています
 
 ## テスト

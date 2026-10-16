@@ -147,7 +147,18 @@ table.res tr.cur { background: var(--accent-weak); }
 footer { margin-top: 16px; font-size: .78rem; color: var(--muted); }
 footer a { color: inherit; }
 #toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--surface); padding: 8px 14px; border-radius: 999px; font-size: .85rem; }
-.howto svg { max-width: 420px; }
+.explain { line-height: 1.8; display: block; }
+.explain h1 { font-size: 1.2rem; margin: 0 0 8px; }
+.explain h2 { font-size: 1.08rem; margin: 28px 0 8px; padding-bottom: 4px; border-bottom: 2px solid var(--accent-weak); }
+.explain h3 { font-size: .98rem; margin: 18px 0 6px; }
+.explain h4 { font-size: .92rem; margin: 14px 0 4px; }
+.explain pre { background: var(--bg); border: 1px solid var(--line); border-radius: var(--r); padding: 8px 12px; overflow-x: auto; font-size: .85rem; }
+.explain code { font-family: var(--f-num); }
+.explain table { border-collapse: collapse; font-size: .85rem; margin: 8px 0; }
+.explain th, .explain td { padding: 6px 10px; border-bottom: 1px solid var(--line); text-align: left; }
+.explain th { background: var(--bg); color: var(--ink2); font-weight: 700; }
+.explain hr { border: 0; border-top: 1px solid var(--line); margin: 24px 0; }
+.explain .figure { max-width: 460px; margin: 8px 0; }
 </style>
 </head>
 <body>
@@ -161,6 +172,7 @@ footer a { color: inherit; }
     <nav class="tabs" role="tablist">
       <button role="tab" aria-selected="true" data-tab="fit" type="button">はめあい</button>
       <button role="tab" aria-selected="false" data-tab="thr" type="button">ねじ</button>
+      <button role="tab" aria-selected="false" data-tab="explain" type="button">解説</button>
     </nav>
   </div>
 </header>
@@ -290,13 +302,163 @@ footer a { color: inherit; }
     </div>
   </section>
 
-  <div class="box howto">
-    <h2>計算のしかた</h2>
-    <p class="hint"><b>はめあい：</b>JIS B 0401-2（ISO 286-2）の基本公差と基礎となる寸法許容差の表から、穴と軸の上・下の寸法許容差を出します。最小すきま = 穴の下の許容差 − 軸の上の許容差、最大すきま = 穴の上の許容差 − 軸の下の許容差です。膜厚 t は直径に 2t で効くので、塗装後の最小すきまは「穴の下 − 2 × 穴の膜厚の最大 − 軸の上 − 2 × 軸の膜厚の最大」で、最も厚く塗れたときの値です。</p>
-    <p class="hint"><b>ねじ：</b>JIS B 0209-1（ISO 965-1）の表から、有効径・外径・内径の上・下の寸法許容差を出します。ねじ山の斜面（フランク）に厚さ t が付くと、ねじ山は軸に直角な向きに t ÷ sin 30° = 2t 太り、有効径では両側で 4t 大きく（めねじでは小さく）なります。このため、相手が H のめねじなら、おねじに塗れる膜厚は基礎となる寸法許容差 es の 1/4 までです。</p>
-    <div class="figure" id="howtoFig"></div>
-    <p class="hint">膜厚は面に均一に付くとみなしています。電気めっきは山の頂や端に厚く付き、吹付け塗装は谷にたまりやすいので、実際の厚さの分布が分かっているときは、厚いところの値を最大に入れてください。ピッチ誤差・フランク角の誤差による有効径の増え分（ゲージで測る実効有効径）は入れていません。</p>
-  </div>
+  <!-- ===== 解説（docs/explanation.md から tools/build.py で埋め込む） ===== -->
+  <section id="explainPanel" hidden>
+    <div class="box explain">
+<!--EXPLAIN-START-->
+<h1>はめあい・ねじ公差計算機の解説</h1>
+<p>穴と軸のはめあいは JIS B 0401-1・-2（ISO 286-1・-2）、メートルねじは JIS B 0209-1（ISO 965-1）の表から寸法許容差を出します。塗装・めっきの膜厚は寸法に足されるものとして扱い、組んだときのすきまと、塗れる膜厚の上限を求めます。</p>
+<p>図面の公差域クラス（H7/g6、6H/6g など）は、ふつう塗装やめっきの前の寸法です。塗装前はすきまばめでも、塗装後に干渉して組めなくなることがあるので、膜厚を別に入れて確かめます。</p>
+<h2>はめあい（穴と軸）</h2>
+<h3>寸法許容差の出し方</h3>
+<ul>
+<li>基本公差 IT は、基準寸法の区分と公差等級で表から引きます</li>
+<li>軸の a〜h は上の許容差 es、j〜zc は下の許容差 ei が基礎となる寸法許容差で、もう一方は IT を足し引きして出します</li>
+<li>穴の A〜H は EI = −es（同じ記号の軸の符号を変えたもの）です</li>
+<li>穴の K・M・N（8 級以下）と P〜ZC（7 級以下）は ES = −ei + Δ です。Δ は基準寸法の区分と公差等級で決まる補正値で、穴と軸の等級が 1 つ違う組み合わせ（H7/p6 と P7/h6 など）で、すきまとしめしろが同じになるように決めてあります</li>
+<li>例外：N は 9 級以上で ES = 0、3 mm 以下では ES = −4 µm。J は表の値を使います</li>
+<li>JS・js は ±IT/2 です</li>
+<li>区分の境目の寸法は下の区分に入ります（10 mm は 6 を超え 10 以下）</li>
+</ul>
+<h3>すきま・しめしろ</h3>
+<ul>
+<li>最小すきま = 穴の下の許容差 − 軸の上の許容差（穴が最小、軸が最大のとき）</li>
+<li>最大すきま = 穴の上の許容差 − 軸の下の許容差（穴が最大、軸が最小のとき）</li>
+<li>負の値はしめしろ（干渉）です</li>
+<li>最小すきまが 0 以上ならすきまばめ、最大すきまが 0 以下ならしまりばめ、その間が中間ばめです</li>
+</ul>
+<h3>膜厚の効き方（平行部）</h3>
+<p>円筒の面に膜厚 t が付くと、直径は 2t 変わります。軸は 2t 太くなり、穴は 2t 細くなります。</p>
+<ul>
+<li>塗装後の最小すきま = 穴の下 − 2 × 穴の膜厚の最大 − 軸の上 − 2 × 軸の膜厚の最大</li>
+<li>塗装後の最大すきま = 穴の上 − 2 × 穴の膜厚の最小 − 軸の下 − 2 × 軸の膜厚の最小</li>
+<li>塗れる膜厚の合計（穴＋軸、片側）=（塗装前の最小すきま − 残したいすきま）÷ 2</li>
+<li>軸だけに塗れる膜厚 = 塗れる膜厚の合計 − 穴の膜厚の最大</li>
+</ul>
+<h3>例：基準寸法 25 mm の H7/g6</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>上の許容差</th>
+<th>下の許容差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>穴 H7（IT7 = 21 µm）</td>
+<td>+21 µm</td>
+<td>0 µm</td>
+</tr>
+<tr>
+<td>軸 g6（IT6 = 13 µm）</td>
+<td>−7 µm</td>
+<td>−20 µm</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>塗装前：最小すきま 0 − (−7) = 7 µm、最大すきま 21 − (−20) = 41 µm（すきまばめ）</li>
+<li>軸に塗れる膜厚：7 ÷ 2 = 3.5 µm まで</li>
+<li>軸に 10〜20 µm 塗ると、最小すきまは 7 − 2 × 20 = −33 µm（33 µm 干渉）、最大すきまは 41 − 2 × 10 = 21 µm です。寸法と膜厚の組み合わせによって、組めたり組めなかったりします</li>
+<li>同じ 6 級で軸を e6（−40 / −53 µm）にすると、塗装後の最小すきまは 0 − (−40) − 40 = 0 µm になります</li>
+</ul>
+<h2>ねじ（めねじとおねじ）</h2>
+<h3>基準寸法</h3>
+<p>ピッチ P のメートルねじは、とがり山の高さ H = 0.866025 P を基準に寸法が決まります。</p>
+<ul>
+<li>有効径 d2 = D2 = d − 0.75 H = d − 0.649519 P</li>
+<li>めねじの内径 D1 = d − 1.25 H = d − 1.082532 P</li>
+<li>おねじの谷の径 d3 = d − 1.25 H − H/6 = d − 1.226869 P（参考値。最小は定めない）</li>
+</ul>
+<h3>公差域クラス</h3>
+<ul>
+<li>位置：おねじは e・f・g・h、めねじは G・H。h・H は基礎となる寸法許容差が 0 で、e・f・g と G は膜厚などのためのすきまを持たせた位置です</li>
+<li>等級：有効径の公差（めねじ TD2、おねじ Td2）、めねじの内径の公差 TD1、おねじの外径の公差 Td を表から引きます。有効径の公差は呼び径の区分とピッチで、内径・外径の公差はピッチだけで決まります</li>
+<li>5g6g は「有効径 5g・外径 6g」、6g は「有効径・外径とも 6g」の意味です</li>
+<li>等級の選び方は、はめあい長さ（S・N・L）と精度（精・中・粗）で JIS に推奨があります。このツールは入れた公差域クラスの値をそのまま使います</li>
+</ul>
+<h3>はめあいを決めるのは有効径</h3>
+<p>めねじとおねじは、山の斜面（フランク）どうしが当たってかみ合います。外径・内径（山の頂と谷）には有効径より大きなすきまがあるので、組めるかどうかは有効径のすきまで決まります。</p>
+<ul>
+<li>有効径の最小すきま = EI − es</li>
+<li>有効径の最大すきま =（EI + TD2）−（es − Td2）</li>
+</ul>
+<h3>膜厚の効き方（ねじ）</h3>
+<div class="figure" id="howtoFig"></div>
+
+<p>60° のねじ山のフランクに、面に直角な向きで膜厚 t が付くと、山は半径方向に t ÷ sin 30° = 2t 太ります。有効径は両側で 4t 大きく（めねじでは 4t 小さく）なります。山の頂と谷（外径・内径）は円筒に近いので 2t です。</p>
+<ul>
+<li>塗装後の有効径の最小すきま = EI − es − 4 ×（めねじの膜厚の最大 ＋ おねじの膜厚の最大）</li>
+<li>塗れる膜厚の合計（めねじ＋おねじ）=（塗装前の有効径の最小すきま − 残したいすきま）÷ 4</li>
+<li>相手が H のめねじなら、おねじに塗れる膜厚は |es| ÷ 4 まで。h のおねじには膜厚の余裕がありません</li>
+</ul>
+<p>フランクどうしのすきま（面に直角な向き）は、有効径のすきまの 1/4 です。「ねじ山」の図の拡大した円は、このすきまに両方の膜厚が入る様子を、形をゆがめずに描いています。</p>
+<h3>例：M8（P 1.25）の 6H / 6g</h3>
+<ul>
+<li>6H：EI = 0、TD2 = 160 µm → 有効径 7.188〜7.348 mm</li>
+<li>6g：es = −28 µm、Td2 = 118 µm → 有効径 7.042〜7.160 mm</li>
+<li>有効径のすきま：最小 0 − (−28) = 28 µm、最大 160 − (−28 − 118) = 306 µm</li>
+<li>おねじに塗れる膜厚：28 ÷ 4 = 7 µm まで。5〜8 µm 塗ると、最小すきまは 28 − 4 × 8 = −4 µm（4 µm 干渉）です</li>
+<li>おねじを 6e（es = −63 µm）にすると、塗れる膜厚は 63 ÷ 4 = 15.75 µm まで増えます</li>
+</ul>
+<h3>ピッチごとの膜厚の余裕の目安</h3>
+<p>相手が H のめねじのとき、おねじに塗れる膜厚の上限（片側）です。公差等級には左右されません。</p>
+<table>
+<thead>
+<tr>
+<th>ピッチ</th>
+<th>g</th>
+<th>f</th>
+<th>e</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 mm</td>
+<td>6.5 µm</td>
+<td>10 µm</td>
+<td>15 µm</td>
+</tr>
+<tr>
+<td>1.25 mm</td>
+<td>7 µm</td>
+<td>10.5 µm</td>
+<td>15.75 µm</td>
+</tr>
+<tr>
+<td>1.5 mm</td>
+<td>8 µm</td>
+<td>11.25 µm</td>
+<td>16.75 µm</td>
+</tr>
+<tr>
+<td>1.75 mm</td>
+<td>8.5 µm</td>
+<td>12 µm</td>
+<td>17.75 µm</td>
+</tr>
+<tr>
+<td>2 mm</td>
+<td>9.5 µm</td>
+<td>13 µm</td>
+<td>17.75 µm</td>
+</tr>
+</tbody>
+</table>
+<p>一般的な吹付け塗装（20〜40 µm）は、並目のねじ部にはそのままでは入りません。ねじ部をマスキングするか、めっき・塗装の分だけ有効径を小さく仕上げる必要があります。</p>
+<h3>めっきしたねじの検査</h3>
+<p>めっきしたねじは、めっき後に h（めねじは H）の位置の通りゲージが通ることを確かめるのが一般的です（JIS B 1044 / ISO 4042）。このツールの「塗れる膜厚」は、塗装後の有効径が相手の公差域にかからない上限で、同じ考え方です。</p>
+<h2>入れていないもの</h2>
+<ul>
+<li>膜厚は面に均一に付くとみなしています。電気めっきは山の頂・端に厚く付き、吹付け塗装は谷やすみにたまりやすいので、分布が分かっているときは厚いところの値を最大に入れてください</li>
+<li>ねじのピッチ誤差・フランク角の誤差による有効径の増え分（ゲージで測る実効有効径）は入れていません</li>
+<li>溶融亜鉛めっき用のねじ（JIS B 0209-4・-5 / ISO 965-4・-5）の寸法は扱っていません</li>
+<li>図面や仕様書に別の寸法許容差があるときは、そちらを優先してください</li>
+</ul>
+<!--EXPLAIN-END-->
+    </div>
+  </section>
   <footer>
     <a href="https://github.com/kotaooka/fit-calc">GitHub</a> ・ MIT License
   </footer>

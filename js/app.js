@@ -652,8 +652,9 @@
   // ---- 表示の切り替え ----
   function render() {
     segUpd.forEach(f => f());
-    $('fitPanel').hidden = st.mode !== 'fit'; $('thrPanel').hidden = st.mode !== 'thr';
-    if (st.mode === 'fit') renderFit(); else renderThr();
+    if (!['fit', 'thr', 'explain'].includes(st.mode)) st.mode = 'fit';
+    $('fitPanel').hidden = st.mode !== 'fit'; $('thrPanel').hidden = st.mode !== 'thr'; $('explainPanel').hidden = st.mode !== 'explain';
+    if (st.mode === 'fit') renderFit(); else if (st.mode === 'thr') renderThr();
     drawHowto();
   }
 
