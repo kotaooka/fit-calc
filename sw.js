@@ -1,6 +1,6 @@
 // はめあい・ねじ公差計算機の Service Worker
 // 公開ファイルを更新したら VERSION を上げる。古いキャッシュは activate 時に削除される
-const VERSION = 'v1.0.3';
+const VERSION = 'v1.0.4';
 const APP_CACHE = `fit-calc-${VERSION}`;
 const FONT_CACHE = 'fit-calc-fonts';
 

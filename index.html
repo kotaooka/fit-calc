@@ -161,6 +161,10 @@ footer a { color: inherit; }
 .explain th { background: var(--bg); color: var(--ink2); font-weight: 700; }
 .explain hr { border: 0; border-top: 1px solid var(--line); margin: 24px 0; }
 .explain .figure { max-width: 460px; margin: 8px 0; }
+
+/* 支援リンク（DESIGN.md 4章）：本文の文字色を引き継ぎ、印刷では隠す */
+.support a { color: inherit; white-space: nowrap; }
+@media print { .support { display: none !important; } }
 </style>
 </head>
 <body>
@@ -515,7 +519,7 @@ footer a { color: inherit; }
     </div>
   </section>
   <footer>
-    <a href="https://github.com/kotaooka/fit-calc">GitHub</a> ・ MIT License
+    <a href="https://github.com/kotaooka/fit-calc">GitHub</a> ・ MIT License<span class="support"> ・ <a href="https://buymeacoffee.com/kotaooka" target="_blank" rel="noopener"><span aria-hidden="true">☕</span> 開発を応援する（Buy Me a Coffee）</a></span>
   </footer>
 </main>
 <div id="toast" hidden></div>
