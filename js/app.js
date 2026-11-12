@@ -231,9 +231,9 @@
       const x = X(tCross), y = Y(o.creq);
       s += `<line x1="${x}" x2="${x}" y1="${T}" y2="${H - Bm}" stroke="${mut}" stroke-dasharray="4 3"/><circle cx="${x}" cy="${y}" r="4.5" fill="${css('--surface')}" stroke="${css('--s2')}" stroke-width="2.2"/>`;
       const right = x < W - 170;
-      s += `<text x="${x + (right ? 8 : -8)}" y="${T + 14}" font-size="11.5" font-weight="700" fill="${css('--ink')}" text-anchor="${right ? 'start' : 'end'}">${esc(fU(Math.max(0, tCross)))} µm まで塗れます</text>`;
+      s += `<text x="${x + (right ? 8 : -8)}" y="${T + 14}" font-size="11.5" font-weight="700" fill="${css('--ink')}" text-anchor="${right ? 'start' : 'end'}">${esc(fU(Math.max(0, tCross)))} µmまで塗れます</text>`;
     } else if (tCross < 0) {
-      s += `<text x="${L + 8}" y="${T + 14}" font-size="11.5" font-weight="700" fill="${css('--ng')}">膜厚 0 でも残したいすきまが取れません</text>`;
+      s += `<text x="${L + 8}" y="${T + 14}" font-size="11.5" font-weight="700" fill="${css('--ng')}">膜厚0でも残したいすきまが取れません</text>`;
     }
     el.innerHTML = s + '</svg>';
   }
@@ -259,7 +259,7 @@
     const hole = { letter: f.hl, grade: Number(f.hg) }, shaft = { letter: f.sl, grade: Number(f.sg) };
     const msgs = [];
     fCopy.length = 0;
-    fitRes = bad.has('fD') ? { error: '基準寸法は 0 を超え 500 mm 以下で入れてください。' } : bad.size ? { error: '赤い欄の値を見直してください。膜厚は 0 以上で、最小 ≤ 最大にします。' } : FC.fit({ D, hole, shaft, coat, creq });
+    fitRes = bad.has('fD') ? { error: '基準寸法は0を超え500 mm以下で入れてください。' } : bad.size ? { error: '赤い欄の値を見直してください。膜厚は0以上で、最小 ≤ 最大にします。' } : FC.fit({ D, hole, shaft, coat, creq });
     $('fListTitle').textContent = '組み合わせ一覧';
     if (fitRes.error) {
       ['fZone', 'fSweepFig', 'fRes', 'fKpi'].forEach(id => { $(id).innerHTML = ''; });
@@ -288,10 +288,10 @@
     const H = r.hole, S = r.shaft;
     let h = '<table class="res"><thead><tr><th></th><th>上の許容差</th><th>下の許容差</th><th>最大寸法</th><th>最小寸法</th></tr></thead><tbody>';
     const zrow = (t, z, sub) => { h += `<tr><th>${esc(t)}<small>${esc(sub)}</small></th><td>${esc(sU(z.up))}<span class="u">µm</span></td><td>${esc(sU(z.lo))}<span class="u">µm</span></td><td>${esc(fM(D + z.up / 1000))}</td><td>${esc(fM(D + z.lo / 1000))}</td></tr>`; fCopy.push([t, sU(z.up).replace('−', '-'), sU(z.lo).replace('−', '-'), (D + z.up / 1000).toFixed(3), (D + z.lo / 1000).toFixed(3)]); };
-    zrow(`穴 ${H.name}`, H, `IT${H.grade} = ${fU(H.it)} µm`);
-    if (r.coat.h[1] > 0) zrow('穴（塗装後）', { up: H.up - 2 * r.coat.h[0], lo: H.lo - 2 * r.coat.h[1] }, `膜厚 ${fU(r.coat.h[0])}〜${fU(r.coat.h[1])} µm`);
-    zrow(`軸 ${S.name}`, S, `IT${S.grade} = ${fU(S.it)} µm`);
-    if (r.coat.s[1] > 0) zrow('軸（塗装後）', { up: S.up + 2 * r.coat.s[1], lo: S.lo + 2 * r.coat.s[0] }, `膜厚 ${fU(r.coat.s[0])}〜${fU(r.coat.s[1])} µm`);
+    zrow(`穴${H.name}`, H, `IT${H.grade} = ${fU(H.it)} µm`);
+    if (r.coat.h[1] > 0) zrow('穴（塗装後）', { up: H.up - 2 * r.coat.h[0], lo: H.lo - 2 * r.coat.h[1] }, `膜厚${fU(r.coat.h[0])}〜${fU(r.coat.h[1])} µm`);
+    zrow(`軸${S.name}`, S, `IT${S.grade} = ${fU(S.it)} µm`);
+    if (r.coat.s[1] > 0) zrow('軸（塗装後）', { up: S.up + 2 * r.coat.s[1], lo: S.lo + 2 * r.coat.s[0] }, `膜厚${fU(r.coat.s[0])}〜${fU(r.coat.s[1])} µm`);
     h += '</tbody></table><table class="res" style="margin-top:10px"><thead><tr><th></th><th>塗装前</th><th>塗装後</th></tr></thead><tbody>';
     const crow = (t, a, b, u, sub) => { h += `<tr><th>${esc(t)}${sub ? `<small>${esc(sub)}</small>` : ''}</th><td>${esc(a)}<span class="u">${u}</span></td><td>${esc(b)}<span class="u">${u}</span></td></tr>`; fCopy.push([t, a.replace('−', '-').replace(/,/g, ''), b.replace('−', '-').replace(/,/g, ''), u]); };
     crow('はめあいの種類', TYPE_JA[r.bare.type], TYPE_JA[r.coated.type], '');
@@ -300,10 +300,10 @@
     crow('最大しめしろ', fU(Math.max(0, -r.bare.cmin)), fU(r.interference), 'µm', '直径での干渉量');
     h += '</tbody></table><table class="res" style="margin-top:10px"><tbody>';
     const arow = (t, v, sub, j) => { h += `<tr><th>${esc(t)}<small>${esc(sub)}</small></th><td>${esc(v)}<span class="u">µm</span>${j || ''}</td></tr>`; fCopy.push([t, v.replace('−', '-'), 'µm']); };
-    const judge = (allow, have) => have > 0 ? (have <= allow + 1e-9 ? '<span class="judge ok">○ 入る</span>' : `<span class="judge ng">✕ ${esc(fU(have - allow))} µm 超える</span>`) : '';
-    arow('塗れる膜厚の合計（穴＋軸）', sU(r.room), `最小すきま ${fU(r.bare.cmin)} µm から残したいすきま ${fU(creq)} µm を引いて ÷ 2`);
-    arow('軸に塗れる膜厚', sU(r.allowShaft), `穴の膜厚を最大 ${fU(r.coat.h[1])} µm としたとき`, judge(r.allowShaft, r.coat.s[1]));
-    arow('穴に塗れる膜厚', sU(r.allowHole), `軸の膜厚を最大 ${fU(r.coat.s[1])} µm としたとき`, judge(r.allowHole, r.coat.h[1]));
+    const judge = (allow, have) => have > 0 ? (have <= allow + 1e-9 ? '<span class="judge ok">○ 入る</span>' : `<span class="judge ng">✕ ${esc(fU(have - allow))} µm超える</span>`) : '';
+    arow('塗れる膜厚の合計（穴＋軸）', sU(r.room), `最小すきま${fU(r.bare.cmin)} µmから残したいすきま${fU(creq)} µmを引いて ÷ 2`);
+    arow('軸に塗れる膜厚', sU(r.allowShaft), `穴の膜厚を最大${fU(r.coat.h[1])} µmとしたとき`, judge(r.allowShaft, r.coat.s[1]));
+    arow('穴に塗れる膜厚', sU(r.allowHole), `軸の膜厚を最大${fU(r.coat.s[1])} µmとしたとき`, judge(r.allowHole, r.coat.h[1]));
     h += '</tbody></table>';
     $('fRes').innerHTML = h;
     fCopy.unshift(['基準寸法', String(D), 'mm'], ['はめあい', `${H.name}/${S.name}`, ''], ['穴の膜厚', `${r.coat.h[0]}〜${r.coat.h[1]}`, 'µm'], ['軸の膜厚', `${r.coat.s[0]}〜${r.coat.s[1]}`, 'µm'], ['残したいすきま', String(creq), 'µm']);
@@ -311,13 +311,13 @@
     // 注意と判定の理由
     if (intended && r.coated.cmin < creq) {
       const alt = fitAlt(D, hole, shaft, coat, creq);
-      msgs.push(['err', `× 膜厚が最大の部品どうしを組むと、直径で ${fU(creq - r.coated.cmin)} µm ${creq > 0 ? '残したいすきまに足りません' : '干渉します'}。軸の膜厚を ${fU(Math.max(0, r.allowShaft))} µm 以下にするか、${alt ? `同じ ${shaft.grade} 級の ${alt.shaft.name}（塗装後の最小すきま ${fU(alt.coated.cmin)} µm）のように軸を細くする` : '軸の公差域を細い側に変える'}か、塗装前の穴を大きくしてください。`]);
-      if (r.coated.cmax > creq) msgs.push(['info', `寸法の組み合わせによっては組めます。最大すきま側（穴が最大・軸が最小・膜厚が最小）では ${fU(r.coated.cmax)} µm のすきまがあります。`]);
+      msgs.push(['err', `× 膜厚が最大の部品どうしを組むと、直径で${fU(creq - r.coated.cmin)} µm ${creq > 0 ? '残したいすきまに足りません' : '干渉します'}。軸の膜厚を${fU(Math.max(0, r.allowShaft))} µm以下にするか、${alt ? `同じ${shaft.grade}級の${alt.shaft.name}（塗装後の最小すきま${fU(alt.coated.cmin)} µm）のように軸を細くする` : '軸の公差域を細い側に変える'}か、塗装前の穴を大きくしてください。`]);
+      if (r.coated.cmax > creq) msgs.push(['info', `寸法の組み合わせによっては組めます。最大すきま側（穴が最大・軸が最小・膜厚が最小）では${fU(r.coated.cmax)} µmのすきまがあります。`]);
     } else if (intended && coated) {
-      msgs.push(['ok', `○ 膜厚が最大でも最小すきま ${fU(r.coated.cmin)} µm が残ります（軸ならあと ${fU(r.allowShaft - r.coat.s[1])} µm 厚くできます）。`]);
+      msgs.push(['ok', `○ 膜厚が最大でも最小すきま${fU(r.coated.cmin)} µmが残ります（軸ならあと${fU(r.allowShaft - r.coat.s[1])} µm厚くできます）。`]);
     }
-    if (!intended && r.bare.type !== 'clearance') msgs.push(['info', `${H.name}/${S.name} は塗装前から${TYPE_JA[r.bare.type]}です（しめしろ 最大 ${fU(Math.max(0, -r.bare.cmin))} µm）。塗装すると、しめしろがさらに直径で ${fU(2 * (r.coat.h[1] + r.coat.s[1]))} µm 増えます。`]);
-    if (!intended && r.bare.type === 'clearance') msgs.push(['warn', `! 塗装前の最小すきま ${fU(r.bare.cmin)} µm が、残したいすきま ${fU(creq)} µm より小さくなっています。`]);
+    if (!intended && r.bare.type !== 'clearance') msgs.push(['info', `${H.name}/${S.name}は塗装前から${TYPE_JA[r.bare.type]}です（しめしろ 最大${fU(Math.max(0, -r.bare.cmin))} µm）。塗装すると、しめしろがさらに直径で${fU(2 * (r.coat.h[1] + r.coat.s[1]))} µm増えます。`]);
+    if (!intended && r.bare.type === 'clearance') msgs.push(['warn', `! 塗装前の最小すきま${fU(r.bare.cmin)} µmが、残したいすきま${fU(creq)} µmより小さくなっています。`]);
     $('fMsgs').innerHTML = msgs.map(([k, t]) => `<div class="msg ${k}">${esc(t)}</div>`).join('');
   }
 
@@ -333,9 +333,9 @@
     let s = svgOpen(W, Hh, '穴と軸の公差域の図') + arrowDef();
     s += `<rect x="${L}" y="${T}" width="${W - L - R}" height="${Hh - T - Bm}" fill="${css('--surface')}" stroke="${css('--line')}"/>`;
     s += yAxis(Y, lo, hi, L, W, R, 'µm');
-    s += `<text x="${W - R}" y="14" font-size="10.5" fill="${css('--ink2')}" text-anchor="end">0 = 基準寸法 ${esc(fmt(r.D, r.D % 1 ? 2 : 0))} mm</text>`;
+    s += `<text x="${W - R}" y="14" font-size="10.5" fill="${css('--ink2')}" text-anchor="end">0 = 基準寸法${esc(fmt(r.D, r.D % 1 ? 2 : 0))} mm</text>`;
     const cm = r.coated.cmin, bad = intended && cm < creq;
-    s += gapBand(Y, x1, x2 + cw, x1 + cw, x2, hc.lo, sc.up, cm, bad, cm < 0 ? `${bad ? '✕ ' : ''}${x2 - x1 - cw < 100 ? '' : intended ? '干渉 ' : 'しめしろ '}${fU(-cm)} µm` : `最小すきま ${fU(cm)} µm`);
+    s += gapBand(Y, x1, x2 + cw, x1 + cw, x2, hc.lo, sc.up, cm, bad, cm < 0 ? `${bad ? '✕ ' : ''}${x2 - x1 - cw < 100 ? '' : intended ? '干渉 ' : 'しめしろ '}${fU(-cm)} µm` : `最小すきま${fU(cm)} µm`);
     s += zoneBox(Y, x1, cw, hc, H, css('--s1'), H.name, 'L');
     s += zoneBox(Y, x2, cw, sc, S, css('--s2'), S.name, 'R');
     s += `<text x="${x1 + cw / 2}" y="${Hh - 6}" font-size="11" fill="${css('--ink2')}" text-anchor="middle">穴</text><text x="${x2 + cw / 2}" y="${Hh - 6}" font-size="11" fill="${css('--ink2')}" text-anchor="middle">軸</text>`;
@@ -351,7 +351,7 @@
       const r = FC.fit({ D, ...hs, coat, creq });
       return { l, r, name: `${l}${fixHole ? shaft.grade : hole.grade}`, cur: fixHole ? l === shaft.letter : l === hole.letter };
     }).filter(x => !x.r.error);
-    $('fListTitle').textContent = fixHole ? `${hole.letter}${hole.grade} に組む軸（${shaft.grade} 級）` : `${shaft.letter}${shaft.grade} に組む穴（${hole.grade} 級）`;
+    $('fListTitle').textContent = fixHole ? `${hole.letter}${hole.grade}に組む軸（${shaft.grade}級）` : `${shaft.letter}${shaft.grade}に組む穴（${hole.grade}級）`;
     if (!rows.length) { el.innerHTML = ''; return; }
     const W = el.clientWidth && el.clientWidth < 480 ? 420 : 560, rh = 22, T = 26, Bm = 36, L = 88, R = 14, Hh = T + rows.length * rh + Bm;
     const vals = rows.flatMap(x => [x.r.bare.cmin, x.r.bare.cmax, x.r.coated.cmin, x.r.coated.cmax]).concat([0, creq]);
@@ -372,7 +372,7 @@
       if (broke) s += `<text x="${L - 8}" y="${y + 15}" font-size="11" font-weight="700" fill="${css('--ng')}" text-anchor="end">✕</text>`;
       s += `<rect x="${X(r.bare.cmin)}" y="${y + 4}" width="${Math.max(1, X(r.bare.cmax) - X(r.bare.cmin))}" height="${rh - 8}" fill="none" stroke="${css('--muted')}" stroke-dasharray="3 2"/>`;
       s += `<rect x="${X(r.coated.cmin)}" y="${y + 6}" width="${Math.max(2, X(r.coated.cmax) - X(r.coated.cmin))}" height="${rh - 12}" fill="${c}" fill-opacity=".85" rx="2"/>`;
-      s += `<title>${esc(`${x.name}：${TYPE_JA[r.coated.type]}、すきま ${sU(r.coated.cmin)}〜${sU(r.coated.cmax)} µm`)}</title></g>`;
+      s += `<title>${esc(`${x.name}：${TYPE_JA[r.coated.type]}、すきま${sU(r.coated.cmin)}〜${sU(r.coated.cmax)} µm`)}</title></g>`;
     });
     s += `<text x="${L - 8}" y="${T - 10}" font-size="10" fill="${css('--ng')}" text-anchor="end">✕ 塗装で干渉</text>`;
     el.innerHTML = s + '</svg>';
@@ -402,10 +402,10 @@
     stdNote(bad.has('tD') || bad.has('tP') ? null : d, bad.has('tD') || bad.has('tP') ? null : P);
     const ic = FC.parseThreadClass(t.ic, false), ec = FC.parseThreadClass(t.ec, true);
     tCopy.length = 0;
-    thrRes = bad.has('tD') || bad.has('tP') ? { error: '呼び径とピッチを mm で入れてください。' } : bad.size ? { error: '赤い欄の値を見直してください。膜厚は 0 以上で、最小 ≤ 最大にします。' } : FC.threadFit({ d, P, int: ic, ext: ec, coat, creq });
+    thrRes = bad.has('tD') || bad.has('tP') ? { error: '呼び径とピッチをmmで入れてください。' } : bad.size ? { error: '赤い欄の値を見直してください。膜厚は0以上で、最小 ≤ 最大にします。' } : FC.threadFit({ d, P, int: ic, ext: ec, coat, creq });
     drawRoomTable(P, ec);
     const name = st.thr.sel === 'custom' ? `M${d}×${P}` : (FC.THREADS.find(x => `${x.d}|${x.P}` === st.thr.sel) || {}).name;
-    $('tListTitle').textContent = `${t.ic} に組むおねじ`;
+    $('tListTitle').textContent = `${t.ic}に組むおねじ`;
     if (thrRes.error) {
       ['tZone', 'tSweepFig', 'tRes', 'tKpi', 'tListFig'].forEach(id => { $(id).innerHTML = ''; });
       $('tMsgs').innerHTML = `<div class="msg err">× ${esc(thrRes.error)}</div>`;
@@ -430,25 +430,25 @@
     const I = r.int, E = r.ext;
     let h = `<table class="res"><thead><tr><th>${esc(name)}</th><th>最大</th><th>最小</th><th>公差</th></tr></thead><tbody>`;
     const lrow = (t2, mx, mn, tol, sub) => { h += `<tr><th>${esc(t2)}${sub ? `<small>${esc(sub)}</small>` : ''}</th><td>${mx == null ? '―' : esc(fM(mx))}</td><td>${mn == null ? '―' : esc(fM(mn))}</td><td>${tol == null ? '―' : esc(fU(tol))}<span class="u">${tol == null ? '' : 'µm'}</span></td></tr>`; tCopy.push([t2, mx == null ? '' : mx.toFixed(3), mn == null ? '' : mn.toFixed(3), tol == null ? '' : String(tol)]); };
-    lrow(`めねじ ${I.name} 谷の径 D`, null, I.D[0], null, '最大は定めない');
-    lrow(`めねじ ${I.name} 有効径 D2`, I.D2[1], I.D2[0], I.TD2, `下の許容差 EI = ${sU(I.EI)} µm`);
-    lrow(`めねじ ${I.name} 内径 D1`, I.D1[1], I.D1[0], I.TD1);
-    lrow(`おねじ ${E.name} 外径 d`, E.d[1], E.d[0], E.Td, `上の許容差 es = ${sU(E.es)} µm`);
-    lrow(`おねじ ${E.name} 有効径 d2`, E.d2[1], E.d2[0], E.Td2);
-    lrow(`おねじ ${E.name} 谷の径 d3`, E.d3[1], null, null, '最小は定めない（参考値）');
-    h += `</tbody></table><p class="hint" style="margin:6px 0 0">基準寸法：有効径 ${esc(fM(r.d2))} mm、内径 ${esc(fM(r.D1))} mm、とがり山の高さ H = ${esc(fmt(r.H, 4))} mm（呼び径の区分 ${esc(r.rlab)} mm）</p>`;
+    lrow(`めねじ${I.name}谷の径D`, null, I.D[0], null, '最大は定めない');
+    lrow(`めねじ${I.name}有効径D2`, I.D2[1], I.D2[0], I.TD2, `下の許容差EI = ${sU(I.EI)} µm`);
+    lrow(`めねじ${I.name}内径D1`, I.D1[1], I.D1[0], I.TD1);
+    lrow(`おねじ${E.name}外径d`, E.d[1], E.d[0], E.Td, `上の許容差es = ${sU(E.es)} µm`);
+    lrow(`おねじ${E.name}有効径d2`, E.d2[1], E.d2[0], E.Td2);
+    lrow(`おねじ${E.name}谷の径d3`, E.d3[1], null, null, '最小は定めない（参考値）');
+    h += `</tbody></table><p class="hint" style="margin:6px 0 0">基準寸法：有効径${esc(fM(r.d2))} mm、内径${esc(fM(r.D1))} mm、とがり山の高さH = ${esc(fmt(r.H, 4))} mm（呼び径の区分${esc(r.rlab)} mm）</p>`;
     h += '<table class="res" style="margin-top:10px"><thead><tr><th>すきま（直径）</th><th>塗装前</th><th>塗装後</th></tr></thead><tbody>';
     const crow = (t2, a, b, sub) => { h += `<tr><th>${esc(t2)}${sub ? `<small>${esc(sub)}</small>` : ''}</th><td>${esc(sU(a))}<span class="u">µm</span></td><td>${esc(sU(b))}<span class="u">µm</span></td></tr>`; tCopy.push([t2, String(a), String(b), 'µm']); };
-    crow('有効径の最小すきま', r.bare.cmin, r.coated.cmin, '負は干渉。膜厚の効きは 4t');
+    crow('有効径の最小すきま', r.bare.cmin, r.coated.cmin, '負は干渉。膜厚の効きは4t');
     crow('有効径の最大すきま', r.bare.cmax, r.coated.cmax);
-    crow('外径側の最小すきま', r.major.cmin + 2 * (r.coat.i[1] + r.coat.e[1]), r.major.cmin, 'おねじの山とめねじの谷。効きは 2t');
-    crow('内径側の最小すきま', r.minor.cmin + 2 * (r.coat.i[1] + r.coat.e[1]), r.minor.cmin, 'めねじの山とおねじの谷。効きは 2t');
+    crow('外径側の最小すきま', r.major.cmin + 2 * (r.coat.i[1] + r.coat.e[1]), r.major.cmin, 'おねじの山とめねじの谷。効きは2t');
+    crow('内径側の最小すきま', r.minor.cmin + 2 * (r.coat.i[1] + r.coat.e[1]), r.minor.cmin, 'めねじの山とおねじの谷。効きは2t');
     h += '</tbody></table><table class="res" style="margin-top:10px"><tbody>';
-    const judge = (allow, have) => have > 0 ? (have <= allow + 1e-9 ? '<span class="judge ok">○ 入る</span>' : `<span class="judge ng">✕ ${esc(fU(have - allow))} µm 超える</span>`) : '';
+    const judge = (allow, have) => have > 0 ? (have <= allow + 1e-9 ? '<span class="judge ok">○ 入る</span>' : `<span class="judge ng">✕ ${esc(fU(have - allow))} µm超える</span>`) : '';
     const arow = (t2, v, sub, j) => { h += `<tr><th>${esc(t2)}<small>${esc(sub)}</small></th><td>${esc(sU(v))}<span class="u">µm</span>${j || ''}</td></tr>`; tCopy.push([t2, String(v), 'µm']); };
-    arow('塗れる膜厚の合計（めねじ＋おねじ）', r.room, `有効径の最小すきま ${fU(r.bare.cmin)} µm から残したいすきま ${fU(creq)} µm を引いて ÷ 4`);
-    arow('おねじに塗れる膜厚', r.allowExt, `めねじの膜厚を最大 ${fU(r.coat.i[1])} µm としたとき`, judge(r.allowExt, r.coat.e[1]));
-    arow('めねじに塗れる膜厚', r.allowInt, `おねじの膜厚を最大 ${fU(r.coat.e[1])} µm としたとき`, judge(r.allowInt, r.coat.i[1]));
+    arow('塗れる膜厚の合計（めねじ＋おねじ）', r.room, `有効径の最小すきま${fU(r.bare.cmin)} µmから残したいすきま${fU(creq)} µmを引いて ÷ 4`);
+    arow('おねじに塗れる膜厚', r.allowExt, `めねじの膜厚を最大${fU(r.coat.i[1])} µmとしたとき`, judge(r.allowExt, r.coat.e[1]));
+    arow('めねじに塗れる膜厚', r.allowInt, `おねじの膜厚を最大${fU(r.coat.e[1])} µmとしたとき`, judge(r.allowInt, r.coat.i[1]));
     h += '</tbody></table>';
     $('tRes').innerHTML = h;
     tCopy.unshift(['ねじ', name, ''], ['公差域クラス', `${I.name}/${E.name}`, ''], ['めねじの膜厚', `${r.coat.i[0]}〜${r.coat.i[1]}`, 'µm'], ['おねじの膜厚', `${r.coat.e[0]}〜${r.coat.e[1]}`, 'µm']);
@@ -457,21 +457,21 @@
       // 同じ有効径の等級で、塗装後も組める位置を探す
       const alt = ['g', 'f', 'e'].map(pos => ({ pos, r: FC.threadFit({ d, P, int: ic, ext: { pos, g2: ec.g2, gd: ec.gd }, coat, creq }) }))
         .find(x => !x.r.error && x.r.coated.cmin >= creq && x.pos !== ec.pos && 'hgfe'.indexOf(x.pos) > 'hgfe'.indexOf(ec.pos));
-      msgs.push(['err', `× 膜厚が最大のねじどうしを組むと、有効径で ${fU(creq - r.coated.cmin)} µm ${creq > 0 ? '残したいすきまに足りません' : '干渉し、ねじ込めないかゲージが通りません'}。おねじの膜厚を ${fU(Math.max(0, r.allowExt))} µm 以下にするか、${alt ? `${alt.r.ext.name}（塗装後の最小すきま ${fU(alt.r.coated.cmin)} µm）のようにめっき・塗装の分だけ細く仕上げた公差域を使う` : 'めっき・塗装の前のねじを、膜厚の 4 倍だけ有効径を小さく仕上げる'}か、ねじ部をマスキングしてください。`]);
+      msgs.push(['err', `× 膜厚が最大のねじどうしを組むと、有効径で${fU(creq - r.coated.cmin)} µm ${creq > 0 ? '残したいすきまに足りません' : '干渉し、ねじ込めないかゲージが通りません'}。おねじの膜厚を${fU(Math.max(0, r.allowExt))} µm以下にするか、${alt ? `${alt.r.ext.name}（塗装後の最小すきま${fU(alt.r.coated.cmin)} µm）のようにめっき・塗装の分だけ細く仕上げた公差域を使う` : 'めっき・塗装の前のねじを、膜厚の4倍だけ有効径を小さく仕上げる'}か、ねじ部をマスキングしてください。`]);
     } else if (coated) {
-      msgs.push(['ok', `○ 膜厚が最大でも有効径に ${fU(r.coated.cmin)} µm のすきまが残ります。`]);
+      msgs.push(['ok', `○ 膜厚が最大でも有効径に${fU(r.coated.cmin)} µmのすきまが残ります。`]);
     }
     if (r.major.cmin < 0 || r.minor.cmin < 0) msgs.push(['warn', `! ${r.major.cmin < 0 ? '外径' : '内径'}の側でも山と谷が干渉します（${fU(-Math.min(r.major.cmin, r.minor.cmin))} µm）。`]);
-    if (coated && r.coat.e[1] > 0) msgs.push(['info', 'めっきしたねじを検査するときは、めっき後に h（めねじは H）の位置の通りゲージが通ることを確かめるのが一般的です（JIS B 1044 / ISO 4042）。']);
+    if (coated && r.coat.e[1] > 0) msgs.push(['info', 'めっきしたねじを検査するときは、めっき後にh（めねじはH）の位置の通りゲージが通ることを確かめるのが一般的です（JIS B 1044 / ISO 4042）。']);
     $('tMsgs').innerHTML = msgs.map(([k, x]) => `<div class="msg ${k}">${esc(x)}</div>`).join('');
   }
 
   function drawRoomTable(P, ec) {
     const R = FC.coatingRoomByPosition(P);
     if (!R) { $('tRoom').innerHTML = ''; return; }
-    let h = `<table class="res"><thead><tr><th>ピッチ ${esc(fmt(P, P % 1 ? 2 : 0))} mm</th><th>寸法許容差</th><th>塗れる膜厚</th></tr></thead><tbody>`;
-    R.ext.forEach(x => { h += `<tr class="${ec && ec.pos === x.pos ? 'cur' : ''}"><th>おねじ ${x.pos}<small>es</small></th><td>${x.es == null ? '―' : esc(sU(x.es))}<span class="u">${x.es == null ? '' : 'µm'}</span></td><td>${x.room == null ? '定めなし' : esc(fU(x.room))}<span class="u">${x.room == null ? '' : 'µm'}</span></td></tr>`; });
-    R.int.forEach(x => { h += `<tr><th>めねじ ${x.pos}<small>EI</small></th><td>${esc(sU(x.EI))}<span class="u">µm</span></td><td>${esc(fU(x.room))}<span class="u">µm</span></td></tr>`; });
+    let h = `<table class="res"><thead><tr><th>ピッチ${esc(fmt(P, P % 1 ? 2 : 0))} mm</th><th>寸法許容差</th><th>塗れる膜厚</th></tr></thead><tbody>`;
+    R.ext.forEach(x => { h += `<tr class="${ec && ec.pos === x.pos ? 'cur' : ''}"><th>おねじ${x.pos}<small>es</small></th><td>${x.es == null ? '―' : esc(sU(x.es))}<span class="u">${x.es == null ? '' : 'µm'}</span></td><td>${x.room == null ? '定めなし' : esc(fU(x.room))}<span class="u">${x.room == null ? '' : 'µm'}</span></td></tr>`; });
+    R.int.forEach(x => { h += `<tr><th>めねじ${x.pos}<small>EI</small></th><td>${esc(sU(x.EI))}<span class="u">µm</span></td><td>${esc(fU(x.room))}<span class="u">µm</span></td></tr>`; });
     $('tRoom').innerHTML = h + '</tbody></table>';
   }
 
@@ -530,7 +530,7 @@
       if (!okc) s += `<text x="${L - 8}" y="${y + 15}" font-size="11" font-weight="700" fill="${css('--ng')}" text-anchor="end">✕</text>`;
       s += `<rect x="${X(r.bare.cmin)}" y="${y + 4}" width="${Math.max(1, X(r.bare.cmax) - X(r.bare.cmin))}" height="${rh - 8}" fill="none" stroke="${css('--muted')}" stroke-dasharray="3 2"/>`;
       s += `<rect x="${X(r.coated.cmin)}" y="${y + 6}" width="${Math.max(2, X(r.coated.cmax) - X(r.coated.cmin))}" height="${rh - 12}" fill="${c}" fill-opacity=".85" rx="2"/>`;
-      s += `<title>${esc(`${x.c}：有効径のすきま ${sU(r.coated.cmin)}〜${sU(r.coated.cmax)} µm、おねじに塗れる膜厚 ${fU(r.allowExt)} µm`)}</title></g>`;
+      s += `<title>${esc(`${x.c}：有効径のすきま${sU(r.coated.cmin)}〜${sU(r.coated.cmax)} µm、おねじに塗れる膜厚${fU(r.allowExt)} µm`)}</title></g>`;
     });
     s += `<text x="${L - 8}" y="${T - 10}" font-size="10" fill="${css('--ng')}" text-anchor="end">✕ 干渉あり</text>`;
     el.innerHTML = s + '</svg>';
@@ -618,8 +618,8 @@
     const [bx0, by0] = toPx(xa, yb), [bx1, by1] = toPx(xb, ya);
     s += `<rect x="${bx0}" y="${by0}" width="${bx1 - bx0}" height="${by1 - by0}" fill="${sf}" stroke="${css('--line')}"/>`;
     s += `<g transform="${T}"><g clip-path="url(#fcClipS)">${layers(true)}</g></g>`;
-    s += `<text x="${bx0 + 8}" y="${by0 + 18}" font-size="12.5" font-weight="700" fill="${ink}" ${halo}>ナット（めねじ ${esc(r.int.name)}）</text>`;
-    s += `<text x="${bx0 + 8}" y="${by1 - 10}" font-size="12.5" font-weight="700" fill="${ink}" ${halo}>ボルト（おねじ ${esc(r.ext.name)}）</text>`;
+    s += `<text x="${bx0 + 8}" y="${by0 + 18}" font-size="12.5" font-weight="700" fill="${ink}" ${halo}>ナット（めねじ${esc(r.int.name)}）</text>`;
+    s += `<text x="${bx0 + 8}" y="${by1 - 10}" font-size="12.5" font-weight="700" fill="${ink}" ${halo}>ボルト（おねじ${esc(r.ext.name)}）</text>`;
     const [lx, ly] = toPx(xa, 0);
     s += `<text x="${lx + 6}" y="${ly - 5}" font-size="10.5" fill="${ink2}" ${halo}>有効径（基準）</text>`;
     s += `<text x="${bx0}" y="${by0 - 8}" font-size="10.5" fill="${mut}">軸を含む断面（P ${esc(fmt(P, P % 1 ? 2 : 0))} mm、実寸の比率）</text>`;
@@ -647,7 +647,7 @@
     s += `<text x="${zcx}" y="${zcy - zr - 8}" font-size="11" fill="${ink2}" text-anchor="middle">フランクを拡大（×${esc(fmt(mag, 0))}）</text>`;
     // フランクのすきま（法線方向）= 有効径のすきま ÷ 4
     const g = r.coated.cmin / 4, bad = r.coated.cmin < creq;
-    s += `<text x="${zcx}" y="${zcy + zr + 18}" font-size="12" font-weight="700" fill="${bad ? ng : ink}" text-anchor="middle">${esc(g < 0 ? `✕ フランクが ${fU(-g)} µm 重なる` : `フランクのすきま ${fU(g)} µm`)}</text>`;
+    s += `<text x="${zcx}" y="${zcy + zr + 18}" font-size="12" font-weight="700" fill="${bad ? ng : ink}" text-anchor="middle">${esc(g < 0 ? `✕ フランクが${fU(-g)} µm重なる` : `フランクのすきま${fU(g)} µm`)}</text>`;
     el.innerHTML = s + '</svg>';
   }
 
@@ -659,7 +659,7 @@
       ? `<span style="--c:var(--s1)">ナット（めねじ）</span><span style="--c:var(--s2)">ボルト（おねじ）</span><span style="--c:var(--s3)">膜厚</span><span style="--c:var(--ng)">重なり（干渉）</span><span class="dash" style="--c:var(--muted)">有効径が反対の端のとき</span>`
       : `<span style="--c:var(--s1)">めねじ（塗装後）</span><span style="--c:var(--s2)">おねじ（塗装後）</span><span class="dash" style="--c:var(--muted)">塗装前</span>`;
     $('tFigHint').textContent = shape
-      ? '最も組みにくい状態（めねじの有効径が最小、おねじの有効径が最大、膜厚が最大）で描いています。破線は有効径が公差の反対の端（最もゆるい側）のときです。フランクのすきまは有効径のすきまの 1/4 で、ここに両方の膜厚が入ります。'
+      ? '最も組みにくい状態（めねじの有効径が最小、おねじの有効径が最大、膜厚が最大）で描いています。破線は有効径が公差の反対の端（最もゆるい側）のときです。フランクのすきまは有効径のすきまの1/4で、ここに両方の膜厚が入ります。'
       : 'それぞれの径の基準寸法からの寸法許容差 [µm] です。ねじのはめあいを決めるのは有効径です。外径・内径も出すと、めねじの谷の径の最大と、おねじの谷の径の最小は規格で定めていないので、上下に開いた形で描きます。';
     if (shape) drawThrShape(r, creq); else drawThrZone(r, creq);
   }
@@ -686,11 +686,11 @@
     s += `<line x1="${x0 - 40}" x2="${xr + 40}" y1="${ym}" y2="${ym}" stroke="${mut}" stroke-dasharray="5 3"/><text x="${xr + 40}" y="${ym - 5}" font-size="10.5" fill="${mut}" text-anchor="end">有効径の位置</text>`;
     s += `<text x="${xt}" y="${base - 10}" font-size="11" fill="${ink2}" text-anchor="middle">60°</text>`;
     const tx = 250;
-    s += `<text x="${tx}" y="60" font-size="12" fill="${ink}">フランクに直角に t 付くと、</text>`;
-    s += `<text x="${tx}" y="80" font-size="12" fill="${ink}">山は半径方向に t ÷ sin 30° = 2t 太る</text>`;
-    s += `<text x="${tx}" y="108" font-size="12.5" font-weight="700" fill="${ink}">有効径は両側で 4t 変わる</text>`;
-    s += `<text x="${tx}" y="130" font-size="11" fill="${ink2}">外径・内径（円筒面）は 2t</text>`;
-    s += `<text x="${tx}" y="150" font-size="11" fill="${ink2}">平行部のはめあいも 2t</text>`;
+    s += `<text x="${tx}" y="60" font-size="12" fill="${ink}">フランクに直角にt付くと、</text>`;
+    s += `<text x="${tx}" y="80" font-size="12" fill="${ink}">山は半径方向にt ÷ sin 30° = 2t太る</text>`;
+    s += `<text x="${tx}" y="108" font-size="12.5" font-weight="700" fill="${ink}">有効径は両側で4t変わる</text>`;
+    s += `<text x="${tx}" y="130" font-size="11" fill="${ink2}">外径・内径（円筒面）は2t</text>`;
+    s += `<text x="${tx}" y="150" font-size="11" fill="${ink2}">平行部のはめあいも2t</text>`;
     $('howtoFig').innerHTML = s + '</svg>';
   }
   // ---- 表示の切り替え ----
@@ -705,12 +705,12 @@
   function copyRows(rows) {
     if (!rows.length) { toast('先に正しい値を入れてください'); return; }
     const text = rows.map(r => r.join('\t')).join('\n');
-    const done = () => toast('コピーしました。Excel に貼り付けられます');
+    const done = () => toast('コピーしました。Excelに貼り付けられます');
     if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
     function fallback() {
       const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select();
       let ok = false; try { ok = document.execCommand('copy'); } catch (e) { /* 失敗 */ }
-      ta.remove(); toast(ok ? 'コピーしました。Excel に貼り付けられます' : 'コピーできませんでした。表を選んでコピーしてください');
+      ta.remove(); toast(ok ? 'コピーしました。Excelに貼り付けられます' : 'コピーできませんでした。表を選んでコピーしてください');
     }
   }
   $('fCopy').addEventListener('click', () => copyRows(fCopy));

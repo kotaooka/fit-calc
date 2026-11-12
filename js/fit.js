@@ -83,13 +83,13 @@
   // 公差域クラス 1 つの上・下の寸法許容差 [µm]
   function tolZone(letter, grade, D) {
     const i = rangeIndex(D);
-    if (i < 0) return { error: '基準寸法は 0 を超え 500 mm 以下で入れてください。' };
-    if (!IT[grade]) return { error: `公差等級 IT${grade} は扱っていません（IT1〜IT16）。` };
+    if (i < 0) return { error: '基準寸法は0を超え500 mm以下で入れてください。' };
+    if (!IT[grade]) return { error: `公差等級IT${grade}は扱っていません（IT1〜IT16）。` };
     const it = IT[grade][MAIN[i]];
     const hole = letter === letter.toUpperCase();
     const l = letter.toLowerCase();
     const name = `${letter}${grade}`;
-    const na = why => ({ error: `${name} は ${RANGE_LABEL(i)} mm では${why || '規格に値がありません'}。` });
+    const na = why => ({ error: `${name}は${RANGE_LABEL(i)} mmでは${why || '規格に値がありません'}。` });
     let up, lo;
     if (l === 'js') { up = it / 2; lo = -it / 2; }
     else if (!hole) {
@@ -97,19 +97,19 @@
         if (grade === 5 || grade === 6) lo = J_EI[56][i];
         else if (grade === 7) lo = J_EI[7][i];
         else if (grade === 8 && i === 0) lo = -6;
-        else return na('定められていません（j は 5〜7 級、8 級は 3 mm 以下）');
+        else return na('定められていません（jは5〜7級、8級は3 mm以下）');
         up = lo + it;
       } else if (l === 'k') { lo = grade >= 4 && grade <= 7 ? K_EI[i] : 0; up = lo + it; }
       else {
         const fd = SHAFT_FD[l];
-        if (!fd) return { error: `${name} は扱っていません。` };
+        if (!fd) return { error: `${name}は扱っていません。` };
         if (fd[i] == null) return na();
         if ('cdefgh'.includes(l)) { up = fd[i]; lo = up - it; } else { lo = fd[i]; up = lo + it; }
       }
     } else {
       // 穴：A〜H は EI = −es、J は表、K〜ZC は ES = −ei（+Δ）
       if (l === 'j') {
-        if (!J_ES[grade]) return na('定められていません（J は 6〜8 級）');
+        if (!J_ES[grade]) return na('定められていません（Jは6〜8級）');
         up = J_ES[grade][i]; lo = up - it;
       } else if ('cdefgh'.includes(l)) { lo = -SHAFT_FD[l][i]; up = lo + it; }
       else if (l === 'k') {
@@ -123,7 +123,7 @@
         lo = up - it;
       } else {
         const fd = SHAFT_FD[l];
-        if (!fd) return { error: `${name} は扱っていません。` };
+        if (!fd) return { error: `${name}は扱っていません。` };
         if (fd[i] == null) return na();
         up = grade <= 7 ? -fd[i] + delta(i, grade) : -fd[i];
         lo = up - it;
@@ -253,12 +253,12 @@
     const ic = q[tp.ip][li], ec = THREAD_REC.ext[quality][tp.ep][li];
     const lab = `${QUALITY_JA[quality]}・${LENGTH_JA[length]}`;
     if (!ic || !ec) {
-      const miss = [!ic && `めねじの ${tp.ip}`, !ec && `おねじの ${tp.ep}`].filter(Boolean).join('・');
-      return { error: `${lab}では${miss} は推奨されていません（JIS B 0209-1 の推奨公差域クラス）。`, int: ic, ext: ec };
+      const miss = [!ic && `めねじの${tp.ip}`, !ec && `おねじの${tp.ep}`].filter(Boolean).join('・');
+      return { error: `${lab}では${miss}は推奨されていません（JIS B 0209-1の推奨公差域クラス）。`, int: ic, ext: ec };
     }
     if (d != null && P != null) {
       const z = threadZones({ d, P, int: parseThreadClass(ic, false), ext: parseThreadClass(ec, true) });
-      if (z.error) return { error: `${lab}の ${ic}/${ec} は、このねじでは使えません。${z.error}`, int: ic, ext: ec };
+      if (z.error) return { error: `${lab}の${ic}/${ec}は、このねじでは使えません。${z.error}`, int: ic, ext: ec };
     }
     return { int: ic, ext: ec, label: lab };
   }
@@ -292,23 +292,23 @@
 
   function threadZones({ d, P, int: ic, ext: ec }) {
     if (!(d > 0) || !(P > 0)) return { error: '呼び径とピッチを入れてください。' };
-    if (!T_FD[P]) return { error: `ピッチ ${P} mm は ISO 965-1 の表にありません。` };
+    if (!T_FD[P]) return { error: `ピッチ${P} mmはISO 965-1の表にありません。` };
     const ri = dRange(d);
-    if (ri < 0) return { error: '呼び径は 1.5 mm を超え 355 mm 以下で入れてください。' };
+    if (ri < 0) return { error: '呼び径は1.5 mmを超え355 mm以下で入れてください。' };
     const rlab = `${D_RANGES[ri][0]}を超え${D_RANGES[ri][1]}以下`;
-    if (!T_TD2[ri][P]) return { error: `呼び径 ${rlab} mm にピッチ ${P} mm の組み合わせは ISO 965-1 の表にありません。` };
+    if (!T_TD2[ri][P]) return { error: `呼び径${rlab} mmにピッチ${P} mmの組み合わせはISO 965-1の表にありません。` };
     const H = 0.8660254037844386 * P;
     const d2 = d - 0.75 * H, D1 = d - 1.25 * H, d3 = d - 1.25 * H - H / 6;
     // めねじ
     const EI = fdOf(P, ic.pos);
-    if (EI == null) return { error: `位置 ${ic.pos} はピッチ ${P} mm では定められていません。` };
+    if (EI == null) return { error: `位置${ic.pos}はピッチ${P} mmでは定められていません。` };
     const TD2 = T_TD2[ri][P][ic.g2 - 4], TD1 = T_TD1[P][ic.g1 - 4];
-    if (TD2 == null || TD1 == null) return { error: `めねじの ${ic.g2}${ic.pos} はこのねじ（ピッチ ${P} mm）では定められていません。` };
+    if (TD2 == null || TD1 == null) return { error: `めねじの${ic.g2}${ic.pos}はこのねじ（ピッチ${P} mm）では定められていません。` };
     // おねじ
     const es = fdOf(P, ec.pos);
-    if (es == null) return { error: `位置 ${ec.pos} はピッチ ${P} mm では定められていません（e は 0.5 mm 以上、f は 0.35 mm 以上）。` };
+    if (es == null) return { error: `位置${ec.pos}はピッチ${P} mmでは定められていません（eは0.5 mm以上、fは0.35 mm以上）。` };
     const Td2 = T_TD2_EXT[ri][P][ec.g2 - 3], Td = T_TD[P][[4, 6, 8].indexOf(ec.gd)];
-    if (Td2 == null || Td == null || ![4, 6, 8].includes(ec.gd)) return { error: `おねじの ${ec.g2}${ec.pos}${ec.gd !== ec.g2 ? ec.gd + ec.pos : ''} はこのねじ（ピッチ ${P} mm）では定められていません（外径の等級は 4・6・8）。` };
+    if (Td2 == null || Td == null || ![4, 6, 8].includes(ec.gd)) return { error: `おねじの${ec.g2}${ec.pos}${ec.gd !== ec.g2 ? ec.gd + ec.pos : ''}はこのねじ（ピッチ${P} mm）では定められていません（外径の等級は4・6・8）。` };
     return {
       d, P, H, d2, D1, d3, rlab,
       int: { EI, TD2, TD1, name: `${ic.g2}${ic.pos}${ic.g1 !== ic.g2 ? ic.g1 + ic.pos : ''}`,
